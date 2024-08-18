@@ -42,7 +42,7 @@ public class DragAndDrop : MonoBehaviour
                     
                     isDragging = true;
                     rb.useGravity = false;
-                    rb.constraints = RigidbodyConstraints.FreezeRotation;
+                    //rb.constraints = RigidbodyConstraints.FreezeRotation;
                    
                     dragCoroutine =StartCoroutine(DragObject());
                 }
@@ -63,9 +63,18 @@ public class DragAndDrop : MonoBehaviour
             Vector3 worldPos = cam.ScreenToWorldPoint(screenCenter);
 
             rb.MovePosition(worldPos);
-            if (!playerInputController.inAir)
+            if (playerInputController.onSlope)
             {
-                rb.velocity = new Vector3(playerInputController._rb.velocity.x, rb.velocity.y, playerInputController._rb.velocity.z);
+                rb.velocity = new Vector3(playerInputController._rb.velocity.x, playerInputController._rb.velocity.y, playerInputController._rb.velocity.z);
+
+            }
+            else if (playerInputController.inAir)
+            {
+                rb.velocity = new Vector3(playerInputController._rb.velocity.x, -rb.velocity.y, playerInputController._rb.velocity.z);
+            }
+            else 
+            {
+                rb.velocity = new Vector3(playerInputController._rb.velocity.x, -rb.velocity.y, playerInputController._rb.velocity.z);
             }
 
             // Check if there is something between the player and the dragged object
@@ -117,7 +126,7 @@ public class DragAndDrop : MonoBehaviour
             }
 
              // Re-enable collision with player
-            rb.constraints = RigidbodyConstraints.None;
+            //rb.constraints = RigidbodyConstraints.None;
             rb.useGravity = true;
             rb = null;
             isDragging = false;

@@ -16,7 +16,7 @@ public class ScalableCube : BaseCube
         //base.Interact();
 
         // Küpün büyümesini test et
-        if(growthCount<growthCountMax && growthCount > growthCountMin&& scaleCoroutine==null) {
+        if(growthCount<growthCountMax && scaleCoroutine==null) {
 
             scaleCoroutine =StartCoroutine(ScaleOverTime(transform.localScale, transform.localScale * scaleMultiplier, scaleSpeed));
             growthCount++;
@@ -29,7 +29,7 @@ public class ScalableCube : BaseCube
         //base.Interact();
 
         // Küpün büyümesini test et
-        if (growthCount < growthCountMax && growthCount > growthCountMin && scaleCoroutine == null)
+        if ( growthCount > growthCountMin && scaleCoroutine == null)
         {
 
             scaleCoroutine = StartCoroutine(ScaleOverTime(transform.localScale, transform.localScale / scaleMultiplier, scaleSpeed));

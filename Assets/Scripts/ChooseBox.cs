@@ -8,7 +8,7 @@ public class ChooseBox : MonoBehaviour
     public float interactRange;
     public LayerMask hitWhat;
     public CinemachineVirtualCamera mainCamera;
-    [HideInInspector]public GameObject lookingAt;
+    public GameObject lookingAt;
 
     private void Update()
     {

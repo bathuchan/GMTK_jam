@@ -528,6 +528,7 @@ GameObject:
   - component: {fileID: 1252858875714773447}
   - component: {fileID: 53881903052995303}
   - component: {fileID: 2469560360247663366}
+  - component: {fileID: 4553859099307560053}
   m_Layer: 6
   m_Name: GreenBox
   m_TagString: Box
@@ -633,7 +634,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2193096937205621550}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 50
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -650,7 +651,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 0
 --- !u!95 &2469560360247663366
 Animator:
@@ -673,6 +674,23 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4553859099307560053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2193096937205621550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dbf9603d1e61104eaa9b740db20931c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseScale: 1
+  weightIncrease: 5
+  weightDecrease: -5
+  maxWeight: 500
+  minWeight: 10
 --- !u!1 &3492495609468022017
 GameObject:
   m_ObjectHideFlags: 0

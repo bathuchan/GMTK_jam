@@ -788,40 +788,21 @@ public class PlayerInputController : MonoBehaviour
             if (effectedObject.TryGetComponent<ScalableCube>(out ScalableCube scalableCube))
             {
                 scalableCube.Interact();
-            } else if (effectedObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube)) 
+            }
+            else if (effectedObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube))
             {
-                if(weightCoroutine==null)
+                if (weightCoroutine == null)
                     weightCoroutine = StartCoroutine(IncreaseWeight(heavyCube));
+            }
+            else if (effectedObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsCube)) 
+            {
+                dsCube.Interact();
             }
         }
         effectedObject = null;
     }
 
-    IEnumerator IncreaseWeight(HeavyCube heavyCube) 
-    {
-        while (isLeftClick) 
-        {
-            heavyCube.Interact();
-            yield return new WaitForSeconds(.1f);
-            yield return null;
-        }
-        weightCoroutine=null;
-        yield return null;
-
-        
-    }
-
-    IEnumerator DecreaseWeight(HeavyCube heavyCube)
-    {
-        while (isRightClick)
-        {
-            heavyCube.InteractAlt();
-            yield return new WaitForSeconds(.1f);
-            yield return null;
-        }
-        weightCoroutine = null;
-        yield return null;
-    }
+    
     private void OnLeftClickCancel(InputAction.CallbackContext context)
     {
         isLeftClick = false;
@@ -846,6 +827,10 @@ public class PlayerInputController : MonoBehaviour
                 if (weightCoroutine == null)
                     weightCoroutine = StartCoroutine(DecreaseWeight(heavyCube));
             }
+            else if (effectedObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsCube))
+            {
+                dsCube.InteractAlt();
+            }
         }
         effectedObject = null;
     }
@@ -859,7 +844,33 @@ public class PlayerInputController : MonoBehaviour
         }
     }
 
-    bool onSlope;
+    IEnumerator IncreaseWeight(HeavyCube heavyCube)
+    {
+        while (isLeftClick)
+        {
+            heavyCube.Interact();
+            yield return new WaitForSeconds(.1f);
+            yield return null;
+        }
+        weightCoroutine = null;
+        yield return null;
+
+
+    }
+
+    IEnumerator DecreaseWeight(HeavyCube heavyCube)
+    {
+        while (isRightClick)
+        {
+            heavyCube.InteractAlt();
+            yield return new WaitForSeconds(.1f);
+            yield return null;
+        }
+        weightCoroutine = null;
+        yield return null;
+    }
+
+    [HideInInspector]public bool onSlope;
     private void Update()
     {// Manage coyote time
         if (isDragging && !dragAndDrop.isDragging) { dragAndDrop.TryStartDrag(); }

@@ -137,7 +137,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 0
 --- !u!95 &4444026150513560000
 Animator:
@@ -173,7 +173,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseScale: 1
-  scaleMultiplier: 1.5
+  scaleMultiplier: 1.2
   scaleSpeed: 1
   raycastDistance: 10
   growthCount: 0
