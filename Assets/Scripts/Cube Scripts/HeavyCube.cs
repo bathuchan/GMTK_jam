@@ -7,6 +7,7 @@ public class HeavyCube : BaseCube
     public float weightIncrease = 5f;
     public float weightDecrease = -5f;
     public float maxWeight = 500f, minWeight = 10;
+    public float currentWeight;
 
 
 
@@ -28,6 +29,7 @@ public class HeavyCube : BaseCube
         if (float.Parse(GetWeight()) < maxWeight)
         {
             SetWeight(rb.mass + weightIncrease); // Aðýrlýðý artýr
+            currentWeight = Mathf.Round(rb.mass);
             foreach (TextMeshPro text in texts)
             {
 
@@ -42,6 +44,7 @@ public class HeavyCube : BaseCube
         if (  float.Parse(GetWeight())> minWeight )
         {
             SetWeight(rb.mass + weightDecrease); // Aðýrlýðý artýr
+            currentWeight = Mathf.Round(rb.mass);
             foreach (TextMeshPro text in texts)
             {
 
