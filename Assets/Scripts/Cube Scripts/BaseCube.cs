@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class BaseCube : MonoBehaviour
 {
-    public float baseScale = 1f;   // Ortak boyut özelliði
+    public float baseScale;   // Ortak boyut özelliði
     //public float baseWeight = 50f; // Ortak aðýrlýk özelliði
 
     protected Rigidbody rb;
@@ -11,7 +11,7 @@ public class BaseCube : MonoBehaviour
 
     protected void Awake()
     {
-
+        baseScale = transform.localScale.x;
         rb = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
         

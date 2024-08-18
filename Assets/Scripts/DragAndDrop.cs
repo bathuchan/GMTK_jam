@@ -117,20 +117,21 @@ public class DragAndDrop : MonoBehaviour
 
     public void StopDrag()
     {
-        if (isDragging)
-        {
+        
             if (dragCoroutine != null)
             {
                 StopCoroutine(dragCoroutine);
                 dragCoroutine = null;
+                // Re-enable collision with player
+                //rb.constraints = RigidbodyConstraints.None;
+                rb.useGravity = true;
+                rb = null;
+                isDragging = false;
+                playerInputController.isDragging=false;
             }
 
-             // Re-enable collision with player
-            //rb.constraints = RigidbodyConstraints.None;
-            rb.useGravity = true;
-            rb = null;
-            isDragging = false;
-        }
+            
+        
     }
 
 

@@ -48,7 +48,10 @@ public class PlayerInputController : MonoBehaviour
     public float maxCameraTilt = 15f; // Maximum tilt angle
     private float currentCameraTilt = 0f; // Current tilt angle
     public float wallJumpCooldown = 0.5f; // Cooldown time after a wall jump
+    public float stopWallrunBelow = 1.05f;
+    public float downForceAmount = 0.2f;
     private bool canWallJump = true;
+    
 
     [Header("Crouch Settings")]
     public float _crouchSpeedMultiplier = 0.5f;
@@ -75,12 +78,12 @@ public class PlayerInputController : MonoBehaviour
 
     [Header("Cam Wobble Settings")]
     public bool camWobbleOn = true;
-    public float camWobbleNormal, camWobbleWalking, camWobbleRunning, camWobbleCrouching;
-    private float shakeMult = 1;
+    public float  camWobbleNormal, camWobbleWalking, camWobbleRunning, camWobbleCrouching;
+    public float camWobbleChangeSpeed = 1f;
 
 
-    public SmoothShake smoothShake;
-    private SmoothShake smoothShakeDefault;
+    public Vector3 smoothShakeFrequency;
+    private SmoothShake smoothShake;
 
    
 
@@ -106,21 +109,23 @@ public class PlayerInputController : MonoBehaviour
 
     private void Awake()
     {
+        
         targetFOV = normalFOV;
         mainCamera.m_Lens.FieldOfView = normalFOV;
 
         _defaultPlayerActions = new DefaultPlayerActions();
         _rb = GetComponent<Rigidbody>();
         smoothShake = GetComponentInChildren<SmoothShake>();
-        smoothShakeDefault = smoothShake;
+        
         dragAndDrop = GetComponent<DragAndDrop>();
         chooseBox= GetComponent<ChooseBox>();
+        
 
     }
 
     private void Start()
     {
-        
+        smoothShakeFrequency = smoothShake.positionShake.frequency;
         playerCollider = gameObject.GetComponentInChildren<CapsuleCollider>();
         playerModel=gameObject.transform.GetChild(0).gameObject;
         startYscale=playerModel.transform.localScale.y;
@@ -325,7 +330,7 @@ public class PlayerInputController : MonoBehaviour
             //Debug.Log("In Air - Air Time: " + airTime + " - Speed Multiplier: " + airSpeedMultiplier);
             yield return new WaitForSeconds(0.1f);
 
-            if (jumping) { Debug.Log("Checkin for wall"); CheckForWall(); }
+            if (jumping) { Debug.Log("Checkin for wall"); CheckForWall(); } 
 
             if (jumping && (isWallRight || isWallLeft) && AboveGround())
             {
@@ -349,7 +354,16 @@ public class PlayerInputController : MonoBehaviour
 
             }
 
-            airSpeedMultiplier = Mathf.Min(airSpeedMultiplier + airTime * airTimeIncrement, maxAirSpeedMultiplier);
+            if ((isWallRight || isWallLeft))
+            {
+                airSpeedMultiplier = 1;
+                _rb.velocity = Vector3.zero;
+            }
+            else 
+            {
+                airSpeedMultiplier = Mathf.Min(airSpeedMultiplier + airTime * airTimeIncrement, maxAirSpeedMultiplier);
+            }
+                
 
             //_rb.AddForce(transform.forward* airSpeedMultiplier*_rb.velocity.magnitude, ForceMode.Acceleration);
             _rb.velocity = new Vector3(maxVelVector.x, _rb.velocity.y, maxVelVector.z);
@@ -441,7 +455,7 @@ public class PlayerInputController : MonoBehaviour
 
         }
         _rb.useGravity = false;
-        _rb.velocity = new Vector3(_rb.velocity.x, -1, _rb.velocity.z);
+        _rb.velocity = new Vector3(_rb.velocity.x, -downForceAmount, _rb.velocity.z);
 
         wallNormal = isWallRight ? rightWallHit.normal : leftWallHit.normal;
 
@@ -453,7 +467,7 @@ public class PlayerInputController : MonoBehaviour
         }
 
         _rb.AddForce(wallForward * wallrunForce, ForceMode.Force);
-        if (Physics.Raycast(transform.position, Vector3.down, 2.05f)) StopWallrun();
+        if (Physics.Raycast(transform.position, Vector3.down, stopWallrunBelow)) StopWallrun();
 
     }
     private void StopWallrun()
@@ -470,7 +484,7 @@ public class PlayerInputController : MonoBehaviour
         //_rb.AddForce(transform.forward * _jumpForce * 1.5f, ForceMode.Impulse);
         _rb.AddForce(transform.up * Mathf.Min(_jumpForce / 8, _rb.velocity.magnitude / 100), ForceMode.Impulse);
         //_rb.AddForce(Vector3.up * _jumpForce);
-        _rb.velocity = new Vector3(_rb.velocity.x, Mathf.Min(_rb.velocity.y, _jumpForce), _rb.velocity.z);
+        _rb.velocity = new Vector3(_rb.velocity.x, Mathf.Min(_rb.velocity.y, _jumpForce*2), _rb.velocity.z);
         isWallRight = false;
         isWallLeft = false;
         _rb.useGravity = true;
@@ -556,7 +570,7 @@ public class PlayerInputController : MonoBehaviour
                 Debug.Log("move1");
                 if ((moveDir.x > _lookTreshold && isWallRight) || moveDir.x < -_lookTreshold && isWallLeft)
                 {
-                    _rb.AddForce(-wallNormal * 100, ForceMode.Force);
+                   // _rb.AddForce(-wallNormal * 100, ForceMode.Force);
                 }
 
 
@@ -576,7 +590,7 @@ public class PlayerInputController : MonoBehaviour
                 if (OnSlope())
                 {
                     _rb.velocity = GetSlopeMoveDirection()*vel.magnitude;
-                    
+                    Debug.Log("move4");
                     Debug.Log("Onslope");
                 }
                 else 
@@ -664,8 +678,9 @@ public class PlayerInputController : MonoBehaviour
         if (!isWalking)
         {
             isWalking = true;
-            smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleWalking;
-            shakeMult = shakeMult * camWobbleWalking;
+            smoothShakeFrequency *= camWobbleWalking;
+            //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleWalking;
+            
         }
 
 
@@ -674,25 +689,29 @@ public class PlayerInputController : MonoBehaviour
     private void OnWalkCancel(InputAction.CallbackContext context)
     {
         isWalking = false;
-        smoothShake.positionShake.frequency = smoothShake.positionShake.frequency / camWobbleWalking;
-        shakeMult = shakeMult / camWobbleWalking;
+        smoothShakeFrequency /= camWobbleWalking;
+        //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency / camWobbleWalking;
 
-        //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * shakeMult;
+
+
+
     }
 
     private void OnRun(InputAction.CallbackContext context)
     {
         isRunning = true;
-        smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleRunning;
-        shakeMult = shakeMult * camWobbleRunning;
+        smoothShakeFrequency *= camWobbleRunning;
+        //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleRunning;
+        
     }
 
     private void OnRunCancel(InputAction.CallbackContext context)
     {
         isRunning = false;
         targetFOV = normalFOV;
-        smoothShake.positionShake.frequency = smoothShake.positionShake.frequency / camWobbleRunning;
-        shakeMult = shakeMult / camWobbleRunning;
+        smoothShakeFrequency /= camWobbleRunning;
+        //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency / camWobbleRunning;
+        
 
 
     }
@@ -702,8 +721,9 @@ public class PlayerInputController : MonoBehaviour
         isCrouching=true;
         isRunning = false;
         targetFOV = crouchFOV;
-        smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleCrouching;
-        shakeMult = shakeMult * camWobbleCrouching;
+        smoothShakeFrequency *= camWobbleCrouching;
+        //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleCrouching;
+        
 
         playerModel.transform.localScale = new Vector3(playerModel.transform.localScale.x,crouchYscale, playerModel.transform.localScale.z);
         _rb.AddForce(Vector3.down * 5,ForceMode.Impulse);
@@ -736,8 +756,9 @@ public class PlayerInputController : MonoBehaviour
         }
         canJump = true;
         isCrouching = false;
-        smoothShake.positionShake.frequency = smoothShake.positionShake.frequency / camWobbleCrouching;
-        shakeMult = shakeMult / camWobbleCrouching;
+        smoothShakeFrequency /= camWobbleCrouching;
+        
+        
         targetFOV = normalFOV;
         playerModel.transform.localScale = new Vector3(playerModel.transform.localScale.x, startYscale, playerModel.transform.localScale.z);
         yield return null;
@@ -762,32 +783,35 @@ public class PlayerInputController : MonoBehaviour
         return Vector3.ProjectOnPlane(vel, slopeHit.normal).normalized;
     }
 
-    bool isDragging;
+    [HideInInspector]public bool isDragging;
     private void OnObjectDrag(InputAction.CallbackContext context)
     {
-        isDragging = true;
+        isDragging = !isDragging;
+        if (!isDragging) { dragAndDrop.StopDrag(); }
         //dragAndDrop.TryStartDrag();
     }
 
     private void OnObjectDragCancel(InputAction.CallbackContext context)
     {
-        isDragging = false;
-        dragAndDrop.StopDrag();
+        //isDragging = false;
+        
     }
 
     //float maxY=0, prevMaxY;
 
     bool isLeftClick,isRightClick;
-    Coroutine weightCoroutine;
+    Coroutine weightCoroutine,scaleCoroutine;
     private void OnLeftClick(InputAction.CallbackContext context)
     {
+        if (isDragging) return;
         isLeftClick = true;
         GameObject effectedObject = chooseBox.lookingAt;
         if (effectedObject != null) 
         {
             if (effectedObject.TryGetComponent<ScalableCube>(out ScalableCube scalableCube))
             {
-                scalableCube.Interact();
+                if (scaleCoroutine == null)
+                    scaleCoroutine= StartCoroutine(ChangeSize(scalableCube,true)); ;
             }
             else if (effectedObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube))
             {
@@ -805,6 +829,7 @@ public class PlayerInputController : MonoBehaviour
     
     private void OnLeftClickCancel(InputAction.CallbackContext context)
     {
+        if (isDragging) return;
         isLeftClick = false;
         if (weightCoroutine != null) 
         {
@@ -814,13 +839,15 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnRightClick(InputAction.CallbackContext context)
     {
+        if (isDragging) return;
         isRightClick = true;
         GameObject effectedObject = chooseBox.lookingAt;
         if (effectedObject != null)
         {
             if (effectedObject.TryGetComponent<ScalableCube>(out ScalableCube scalableCube))
             {
-                scalableCube.InteractAlt();
+                if (scaleCoroutine == null)
+                    scaleCoroutine = StartCoroutine(ChangeSize(scalableCube, false)); ;
             }
             else if (effectedObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube))
             {
@@ -836,12 +863,29 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnRightClickCancel(InputAction.CallbackContext context)
     {
+        if (isDragging) return;
         isRightClick = false;
         if (weightCoroutine != null)
         {
             StopCoroutine(weightCoroutine);
             weightCoroutine = null;
         }
+    }
+
+    IEnumerator ChangeSize(ScalableCube scalableCube,bool increase)
+    {
+        while (isLeftClick||isRightClick)
+        {
+            if (increase) { scalableCube.Interact(); }
+            else { scalableCube.InteractAlt(); }
+            
+            yield return new WaitForSeconds(.1f);
+            yield return null;
+        }
+        scaleCoroutine = null;
+        yield return null;
+
+
     }
 
     IEnumerator IncreaseWeight(HeavyCube heavyCube)
@@ -857,6 +901,8 @@ public class PlayerInputController : MonoBehaviour
 
 
     }
+
+
 
     IEnumerator DecreaseWeight(HeavyCube heavyCube)
     {
@@ -876,7 +922,8 @@ public class PlayerInputController : MonoBehaviour
         if (isDragging && !dragAndDrop.isDragging) { dragAndDrop.TryStartDrag(); }
 
         mainCamera.m_Lens.FieldOfView = Mathf.Lerp(mainCamera.m_Lens.FieldOfView, targetFOV, fovTransitionSpeed * Time.deltaTime);
-
+        //mainCamera.m_Lens.FieldOfView = Mathf.Lerp(mainCamera.m_Lens.FieldOfView, targetFOV, fovTransitionSpeed * Time.deltaTime);
+        smoothShake.positionShake.frequency = Vector3.MoveTowards(smoothShake.positionShake.frequency, smoothShakeFrequency, camWobbleChangeSpeed * Time.deltaTime);
         onSlope = OnSlope();
         _rb.useGravity = !onSlope;
 

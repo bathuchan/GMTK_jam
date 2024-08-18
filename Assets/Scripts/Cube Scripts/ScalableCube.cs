@@ -11,9 +11,14 @@ public class ScalableCube : BaseCube
     public int growthCountMin = -5;
 
     Coroutine scaleCoroutine = null;
+
+    private void Start()
+    {
+        growthCount = (int)Mathf.Round( transform.localScale.x);
+    }
     public override void Interact()
     {
-        //base.Interact();
+        base.Interact();
 
         // Küpün büyümesini test et
         if(growthCount<growthCountMax && scaleCoroutine==null) {

@@ -137,7 +137,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!95 &4444026150513560000
 Animator:
@@ -177,7 +177,7 @@ MonoBehaviour:
   scaleSpeed: 1
   raycastDistance: 10
   growthCount: 0
-  growthCountMax: 5
+  growthCountMax: 7
   growthCountMin: -5
 --- !u!1 &4906601295857843299
 GameObject:
