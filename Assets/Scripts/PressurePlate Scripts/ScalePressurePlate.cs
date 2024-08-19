@@ -15,13 +15,13 @@ public class ScalePressurePlate : GeneralPlateScript
     {
         if(scalableCube != null && scalableCube.growthCount == targetGrowthCount)
         {
-            animatorMesh.material = materials[1]; lampMesh.material = materials[1];
+            animatorMesh.material = materials[1]; lamp_INSIDE_Mesh.material = materials[1];
             animator.SetBool("match", true);
             match = true;
         }
         else
         {
-            animatorMesh.material = materials[0]; lampMesh.material = materials[0];
+            animatorMesh.material = materials[0]; lamp_INSIDE_Mesh.material = materials[0];
             animator.SetBool("match", false);
             match = false;
         }
@@ -29,7 +29,7 @@ public class ScalePressurePlate : GeneralPlateScript
     private void OnTriggerExit(Collider other)
     {
         scalableCube = null;
-        animatorMesh.material = materials[0]; lampMesh.material = materials[0];
+        animatorMesh.material = materials[0]; lamp_INSIDE_Mesh.material = materials[0];
         animator.SetBool("match", false);
         match = false;
     }
