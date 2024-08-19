@@ -3,18 +3,18 @@ using System.Collections;
 
 public class ScalableCube : BaseCube
 {
-    public float scaleMultiplier = 1.5f;
+    public float scaleMultiplier = 1.2f;
     public float scaleSpeed = 1.0f; // Büyüme hýzýný kontrol eder
     public float raycastDistance = 10f; // Raycast uzunluðu
-    public int growthCount = 0;
-    public int growthCountMax = 5;
-    public int growthCountMin = -5;
+    public int growthCount = 2;
+    public int growthCountMax = 7;
+    public int growthCountMin = -3;
 
     Coroutine scaleCoroutine = null;
 
     private void Start()
     {
-        growthCount = (int)Mathf.Round( transform.localScale.x);
+        transform.localScale = transform.localScale * Mathf.Pow(scaleMultiplier, growthCount + growthCountMin + 1);
     }
     public override void Interact()
     {

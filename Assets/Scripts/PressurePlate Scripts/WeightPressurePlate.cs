@@ -22,13 +22,21 @@ public class WeightPressurePlate : GeneralPlateScript
     {
         if (heavyCube != null && heavyCube.currentWeight >= targetWeight)
         {
-            animatorMesh.material = materials[1];lamp_INSIDE_Mesh.material = materials[1];
+            animatorMesh.material = materials[1];
+            foreach (MeshRenderer mr in lamp_INSIDE_Mesh)
+            {
+                mr.material = materials[1];
+            }
             animator.SetBool("match", true);
             match = true;
         }
         else
         {
-            animatorMesh.material = materials[0];lamp_INSIDE_Mesh.material = materials[0];
+            animatorMesh.material = materials[0];
+            foreach (MeshRenderer mr in lamp_INSIDE_Mesh)
+            {
+                mr.material = materials[0];
+            }
             animator.SetBool("match", false);
             match = false;
         }
@@ -36,7 +44,11 @@ public class WeightPressurePlate : GeneralPlateScript
     private void OnTriggerExit(Collider other)
     {
         heavyCube = null;
-        animatorMesh.material = materials[0];lamp_INSIDE_Mesh.material = materials[0];
+        animatorMesh.material = materials[0];
+        foreach (MeshRenderer mr in lamp_INSIDE_Mesh)
+        {
+            mr.material = materials[0];
+        }
         animator.SetBool("match", false);
         match = false;
     }

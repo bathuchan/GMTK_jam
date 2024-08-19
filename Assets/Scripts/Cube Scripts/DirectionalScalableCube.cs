@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public class DirectionalScalableCube : BaseCube
 {
-    public float scaleMultiplier = 1.5f; // Büyüme çarpaný
+    public float scaleMultiplier = 1.2f; // Büyüme çarpaný
     public float scaleSpeed = 1.0f; // Büyüme hýzý
     public float maxScale = 5f;
     public float minScale = 0.1f;// Maksimum ölçekleme faktörü
@@ -19,9 +19,13 @@ public class DirectionalScalableCube : BaseCube
     Coroutine scaleCoroutine=null;
     private void Start()
     {
-        growthCountX = (int)Mathf.Round(transform.localScale.x);
+        transform.localScale = new Vector3(transform.localScale.x * Mathf.Pow(scaleMultiplier, growthCountX + growthCountMinX + 1), 
+            transform.localScale.y * Mathf.Pow(scaleMultiplier, growthCountY + growthCountMinY + 1), 
+            transform.localScale.z * Mathf.Pow(scaleMultiplier, growthCountZ + growthCountMinZ + 1));
+
+        /*growthCountX = (int)Mathf.Round(transform.localScale.x);
         growthCountY = (int)Mathf.Round(transform.localScale.y);
-        growthCountZ = (int)Mathf.Round(transform.localScale.z);
+        growthCountZ = (int)Mathf.Round(transform.localScale.z);*/
     }
     public override void Interact()
     {

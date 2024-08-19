@@ -6,6 +6,7 @@ public class GeneralPlateScript : MonoBehaviour
 {
     public bool match = false;
     public Animator animator;
-    public MeshRenderer animatorMesh, lamp_INSIDE_Mesh;
+    public MeshRenderer animatorMesh;
+    public MeshRenderer[] lamp_INSIDE_Mesh;
     public Material[] materials;
 }
