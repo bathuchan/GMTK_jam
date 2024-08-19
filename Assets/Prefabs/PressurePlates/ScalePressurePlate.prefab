@@ -201,7 +201,7 @@ MonoBehaviour:
   lampMesh: {fileID: 0}
   materials:
   - {fileID: 2100000, guid: ab0f9241ecbb56c4da2417314aa68e9c, type: 2}
-  - {fileID: 2100000, guid: dd87483153297744999c0dbaf58f99e7, type: 2}
+  - {fileID: 2100000, guid: 7ed70ccb1ce011a4298f41be1d5dd377, type: 2}
   targetGrowthCount: 2
 --- !u!1 &5921577920184310647
 GameObject:
@@ -264,7 +264,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: dd87483153297744999c0dbaf58f99e7, type: 2}
+  - {fileID: 2100000, guid: 7ed70ccb1ce011a4298f41be1d5dd377, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

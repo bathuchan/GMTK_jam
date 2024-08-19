@@ -1076,12 +1076,12 @@ public class PlayerInputController : MonoBehaviour
 
         if (onSlope)
         {
-            jumpRaycastLenght = 1.12f;
+            jumpRaycastLenght = 1.12f * transform.localScale.x;
             _rb.AddForce(-slopeHit.normal * 3f, ForceMode.Force);
         }
         else 
         {
-            jumpRaycastLenght = 1.02f;
+            jumpRaycastLenght = 1.02f * transform.localScale.x;
         }
 
         if (IsGrounded())
