@@ -7,6 +7,8 @@ using SmoothShakeFree;
 using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
 using static UnityEngine.InputSystem.InputAction;
+using System.Security.Cryptography;
+using TMPro;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerInputController : MonoBehaviour
@@ -14,7 +16,7 @@ public class PlayerInputController : MonoBehaviour
     private DefaultPlayerActions _defaultPlayerActions;
 
     private InputAction _moveAction, _lookAction, _jumpAction
-        , _runAction, _crouchAction, _dragAction, _leftClickAction, _rightClickAction;
+        , _runAction, _crouchAction, _dragAction, _leftClickAction, _rightClickAction, _scaleScrollUpAction, _scaleScrollDownAction,_scaleScrollButtonAction;
     
     //private InputAction _shootAction;
 
@@ -150,6 +152,12 @@ public class PlayerInputController : MonoBehaviour
         _leftClickAction.Enable();
         _rightClickAction = _defaultPlayerActions.Player.RightClick;
         _rightClickAction.Enable();
+        _scaleScrollButtonAction = _defaultPlayerActions.Player.AxisChange;
+        _scaleScrollButtonAction.Enable();
+        _scaleScrollUpAction = _defaultPlayerActions.Player.AxisUp;
+        _scaleScrollUpAction.Enable();
+        _scaleScrollDownAction= _defaultPlayerActions.Player.AxisDown;
+        _scaleScrollDownAction.Enable();
         //_shootAction = _defaultPlayerActions.Player.Fire;
         //_shootAction.Enable();
 
@@ -167,6 +175,10 @@ public class PlayerInputController : MonoBehaviour
         _leftClickAction.canceled += OnLeftClickCancel;
         _rightClickAction.performed += OnRightClick;
         _rightClickAction.canceled += OnRightClickCancel;
+
+        _scaleScrollButtonAction.performed += OnScaleButton;
+        _scaleScrollUpAction.performed += OnScaleUp;
+        _scaleScrollDownAction.performed += OnScaleDown;
         //_shootAction.performed += OnShoot;
         //_shootAction.canceled += OnShootCancel;
         InputSystem.onDeviceChange += OnDeviceChange; // Subscribe to device change events
@@ -182,7 +194,11 @@ public class PlayerInputController : MonoBehaviour
         _runAction.Disable();
         _crouchAction.Disable();
         _dragAction.Disable();
-
+        _leftClickAction.Disable();
+        _rightClickAction.Disable();
+        _scaleScrollButtonAction.Disable();
+        _scaleScrollUpAction.Disable();
+        _scaleScrollDownAction.Disable();
 
         _moveAction.performed -= OnWalk;
         _moveAction.canceled -= OnWalkCancel;
@@ -202,9 +218,49 @@ public class PlayerInputController : MonoBehaviour
         _rightClickAction.performed -= OnRightClick;
         _rightClickAction.canceled -= OnRightClickCancel;
 
+        _scaleScrollButtonAction.performed -= OnScaleButton;
+        _scaleScrollUpAction.performed -= OnScaleUp;
+        _scaleScrollDownAction.performed -= OnScaleDown;
+
         InputSystem.onDeviceChange -= OnDeviceChange; // Unsubscribe from device change events
     }
 
+    private void OnScaleButton(InputAction.CallbackContext context)
+    {
+        GameObject objectToChangeAxis= chooseBox.lookingAt;
+        if (chooseBox.lookingAt != null&&objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsc)) 
+        {
+            dsc.ChangeAxis(true);
+            chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine+ "(M.SCROLL/R)";
+            chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
+        }
+    }
+
+    
+    private void OnScaleUp(InputAction.CallbackContext context)
+    {
+        GameObject objectToChangeAxis = chooseBox.lookingAt;
+        if (chooseBox.lookingAt != null && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsc))
+        {
+            dsc.ChangeAxis(true);
+            chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
+            chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
+        }
+
+    }
+
+    private void OnScaleDown(InputAction.CallbackContext context)
+    {
+        GameObject objectToChangeAxis = chooseBox.lookingAt;
+        if (chooseBox.lookingAt != null && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsc))
+        {
+            dsc.ChangeAxis(false);
+            chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
+            chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
+        }
+
+    }
+    
 
 
     private void OnDeviceChange(InputDevice device, InputDeviceChange change)
@@ -232,6 +288,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnJump(InputAction.CallbackContext context)
     {
+        
         jumping = true;
         if (coyoteTimeCounter > 0f && wasGrounded && canJump)
         {
@@ -800,27 +857,60 @@ public class PlayerInputController : MonoBehaviour
     //float maxY=0, prevMaxY;
 
     bool isLeftClick,isRightClick;
-    Coroutine weightCoroutine,scaleCoroutine;
+    Coroutine weightCoroutine,scaleCoroutine, dimensionCoroutine;
+
+
     private void OnLeftClick(InputAction.CallbackContext context)
     {
         if (isDragging) return;
         isLeftClick = true;
-        GameObject effectedObject = chooseBox.lookingAt;
+        GameObject effectedObject=null;
+        if (chooseBox.lookingAt != null)
+        {
+
+            effectedObject = chooseBox.lookingAt;
+        }
+        else
+        {
+            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
+            {
+                if (hit.transform.CompareTag("Box"))
+                {
+                    if (hit.transform.TryGetComponent<Animator>(out Animator anim))
+                    {
+                        anim.SetTrigger("LookingAt");//////
+                       
+                    }
+
+                    effectedObject = hit.transform.gameObject;
+                    
+                }
+                else
+                {
+
+                    return;
+                }
+
+            }
+        }
+
+        
         if (effectedObject != null) 
         {
             if (effectedObject.TryGetComponent<ScalableCube>(out ScalableCube scalableCube))
             {
                 if (scaleCoroutine == null)
-                    scaleCoroutine= StartCoroutine(ChangeSize(scalableCube,true)); ;
+                    scaleCoroutine= StartCoroutine(ChangeSize(scalableCube,true)); 
             }
             else if (effectedObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube))
             {
                 if (weightCoroutine == null)
                     weightCoroutine = StartCoroutine(IncreaseWeight(heavyCube));
             }
-            else if (effectedObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsCube)) 
+            else if (effectedObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsc)) 
             {
-                dsCube.Interact();
+                if (dimensionCoroutine == null)
+                    dimensionCoroutine = StartCoroutine(ChangeDimensions(dsc, true));
             }
         }
         effectedObject = null;
@@ -836,12 +926,47 @@ public class PlayerInputController : MonoBehaviour
             StopCoroutine(weightCoroutine);
             weightCoroutine=null;
         }
+        if (scaleCoroutine != null) 
+        {
+            StopCoroutine(scaleCoroutine);
+            scaleCoroutine = null;
+        }
+            
+
     }
     private void OnRightClick(InputAction.CallbackContext context)
     {
         if (isDragging) return;
         isRightClick = true;
-        GameObject effectedObject = chooseBox.lookingAt;
+        GameObject effectedObject = null;
+        if (chooseBox.lookingAt != null)
+        {
+
+            effectedObject = chooseBox.lookingAt;
+        }
+        else
+        {
+            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
+            {
+                if (hit.transform.CompareTag("Box"))
+                {
+                    if (hit.transform.TryGetComponent<Animator>(out Animator anim))
+                    {
+                        anim.SetTrigger("LookingAt");//////
+
+                    }
+
+                    effectedObject = hit.transform.gameObject;
+
+                }
+                else
+                {
+
+                    return;
+                }
+
+            }
+        }
         if (effectedObject != null)
         {
             if (effectedObject.TryGetComponent<ScalableCube>(out ScalableCube scalableCube))
@@ -854,9 +979,11 @@ public class PlayerInputController : MonoBehaviour
                 if (weightCoroutine == null)
                     weightCoroutine = StartCoroutine(DecreaseWeight(heavyCube));
             }
-            else if (effectedObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsCube))
+            else if (effectedObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsc))
             {
-                dsCube.InteractAlt();
+                if (dimensionCoroutine == null)
+                    dimensionCoroutine = StartCoroutine(ChangeDimensions(dsc,false));
+                
             }
         }
         effectedObject = null;
@@ -870,6 +997,11 @@ public class PlayerInputController : MonoBehaviour
             StopCoroutine(weightCoroutine);
             weightCoroutine = null;
         }
+        if (scaleCoroutine != null)
+        {
+            StopCoroutine(scaleCoroutine);
+            scaleCoroutine = null;
+        }
     }
 
     IEnumerator ChangeSize(ScalableCube scalableCube,bool increase)
@@ -882,7 +1014,7 @@ public class PlayerInputController : MonoBehaviour
             yield return new WaitForSeconds(.1f);
             yield return null;
         }
-        scaleCoroutine = null;
+        dimensionCoroutine = null;
         yield return null;
 
 
@@ -913,6 +1045,21 @@ public class PlayerInputController : MonoBehaviour
             yield return null;
         }
         weightCoroutine = null;
+        yield return null;
+    }
+
+
+    IEnumerator ChangeDimensions(DirectionalScalableCube dsc,bool increase)
+    {
+        while (isLeftClick || isRightClick)
+        {
+            if (increase) {dsc.Interact(); }
+            if (!increase){ dsc.InteractAlt(); }
+            
+            yield return new WaitForSeconds(.1f);
+            yield return null;
+        }
+        dimensionCoroutine = null;
         yield return null;
     }
 

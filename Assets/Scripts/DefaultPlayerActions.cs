@@ -98,6 +98,33 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""AxisUp"",
+                    ""type"": ""Value"",
+                    ""id"": ""b3200d8d-8bdd-45e3-8c35-51511961b198"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""AxisDown"",
+                    ""type"": ""Value"",
+                    ""id"": ""c17ca20f-d8c7-465e-ae7d-040a6b630756"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""AxisChange"",
+                    ""type"": ""Button"",
+                    ""id"": ""85a768a5-2071-4c58-9fc8-51284793d77e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -417,6 +444,50 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""RightClick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""623b9553-089e-4224-abc6-266df172f3db"",
+                    ""path"": ""<Mouse>/scroll/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""AxisUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6e54440b-7be7-4c4c-a221-21621a66b61d"",
+                    ""path"": ""<Mouse>/scroll/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""AxisDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c011a83e-2330-4ab3-b6a6-2dac8a4add4f"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""AxisChange"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8271b3bf-84e0-4b94-be61-6a0f0e48d4e4"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""AxisChange"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1012,6 +1083,9 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
         m_Player_Run = m_Player.FindAction("Run", throwIfNotFound: true);
         m_Player_Crouch = m_Player.FindAction("Crouch", throwIfNotFound: true);
         m_Player_Drag = m_Player.FindAction("Drag", throwIfNotFound: true);
+        m_Player_AxisUp = m_Player.FindAction("AxisUp", throwIfNotFound: true);
+        m_Player_AxisDown = m_Player.FindAction("AxisDown", throwIfNotFound: true);
+        m_Player_AxisChange = m_Player.FindAction("AxisChange", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1093,6 +1167,9 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Run;
     private readonly InputAction m_Player_Crouch;
     private readonly InputAction m_Player_Drag;
+    private readonly InputAction m_Player_AxisUp;
+    private readonly InputAction m_Player_AxisDown;
+    private readonly InputAction m_Player_AxisChange;
     public struct PlayerActions
     {
         private @DefaultPlayerActions m_Wrapper;
@@ -1105,6 +1182,9 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
         public InputAction @Run => m_Wrapper.m_Player_Run;
         public InputAction @Crouch => m_Wrapper.m_Player_Crouch;
         public InputAction @Drag => m_Wrapper.m_Player_Drag;
+        public InputAction @AxisUp => m_Wrapper.m_Player_AxisUp;
+        public InputAction @AxisDown => m_Wrapper.m_Player_AxisDown;
+        public InputAction @AxisChange => m_Wrapper.m_Player_AxisChange;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1138,6 +1218,15 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
             @Drag.started += instance.OnDrag;
             @Drag.performed += instance.OnDrag;
             @Drag.canceled += instance.OnDrag;
+            @AxisUp.started += instance.OnAxisUp;
+            @AxisUp.performed += instance.OnAxisUp;
+            @AxisUp.canceled += instance.OnAxisUp;
+            @AxisDown.started += instance.OnAxisDown;
+            @AxisDown.performed += instance.OnAxisDown;
+            @AxisDown.canceled += instance.OnAxisDown;
+            @AxisChange.started += instance.OnAxisChange;
+            @AxisChange.performed += instance.OnAxisChange;
+            @AxisChange.canceled += instance.OnAxisChange;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1166,6 +1255,15 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
             @Drag.started -= instance.OnDrag;
             @Drag.performed -= instance.OnDrag;
             @Drag.canceled -= instance.OnDrag;
+            @AxisUp.started -= instance.OnAxisUp;
+            @AxisUp.performed -= instance.OnAxisUp;
+            @AxisUp.canceled -= instance.OnAxisUp;
+            @AxisDown.started -= instance.OnAxisDown;
+            @AxisDown.performed -= instance.OnAxisDown;
+            @AxisDown.canceled -= instance.OnAxisDown;
+            @AxisChange.started -= instance.OnAxisChange;
+            @AxisChange.performed -= instance.OnAxisChange;
+            @AxisChange.canceled -= instance.OnAxisChange;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1356,6 +1454,9 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
         void OnRun(InputAction.CallbackContext context);
         void OnCrouch(InputAction.CallbackContext context);
         void OnDrag(InputAction.CallbackContext context);
+        void OnAxisUp(InputAction.CallbackContext context);
+        void OnAxisDown(InputAction.CallbackContext context);
+        void OnAxisChange(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

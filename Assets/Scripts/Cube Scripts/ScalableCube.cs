@@ -43,34 +43,7 @@ public class ScalableCube : BaseCube
 
     }
 
-    //private bool CanGrow()
-    //{
-    //    // Küpün mevcut ve büyütülmüþ ölçeði
-    //    Vector3 currentScale = transform.localScale;
-    //    Vector3 newScale = currentScale * scaleMultiplier;
-
-    //    // Raycast'leri kullanarak etrafýndaki alaný kontrol et
-    //    return CheckRaycasts(newScale);
-    //}
-
-    //private bool CheckRaycasts(Vector3 newScale)
-    //{
-    //    // Yeni ölçek için büyüme öncesi merkez
-    //    Vector3 growthCenter = transform.position;
-
-    //    // Küpün etrafýnda dört yönde ve yukarý yönde raycast yap
-    //    Vector3[] directions = { Vector3.left, Vector3.right, Vector3.forward, Vector3.back, Vector3.up };
-    //    foreach (Vector3 direction in directions)
-    //    {
-    //        // Raycast'leri büyütülmüþ küpün etrafýnda kontrol et
-    //        Ray ray = new Ray(growthCenter, direction);
-    //        RaycastHit hit;
-
-
-    //    }
-
-    //    return true;
-    //}
+  
 
     private IEnumerator ScaleOverTime(Vector3 startScale, Vector3 endScale, float duration)
     {

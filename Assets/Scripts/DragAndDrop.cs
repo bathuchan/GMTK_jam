@@ -1,4 +1,6 @@
 using System.Collections;
+using TMPro;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
 using static UnityEngine.Timeline.AnimationPlayableAsset;
 
@@ -12,6 +14,9 @@ public class DragAndDrop : MonoBehaviour
     public LayerMask stopDragLayer;
     public PlayerInputController playerInputController;
     private CapsuleCollider playerCollider;
+    public TextMeshProUGUI UiText;
+    private ChooseBox chooseBox;
+
     void Start()
     {
         cam = Camera.main;
@@ -19,50 +24,82 @@ public class DragAndDrop : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         playerCollider = playerInputController.playerCollider;
+        chooseBox=GetComponent<ChooseBox>();
 
     }
-
+    public float dragSpeed;
     Coroutine dragCoroutine;
-
+    GameObject draggedObject;
     public void TryStartDrag()
     {
-        
-        RaycastHit hit;
+        //if (chooseBox.lookingAt != null) {
 
-        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, dragDistance, draggableLayer)&&!isDragging)
-        {
-            GameObject hitObject = hit.collider.gameObject;
+        //    if (chooseBox.lookingAt.layer == LayerMask.NameToLayer("Box") && chooseBox.lookingAt.TryGetComponent<Rigidbody>(out rb))
+        //    {
+        //        draggedObject = chooseBox.lookingAt;
+        //        isDragging = true;
+        //        rb.useGravity = false;
+        //        //rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-            if (hitObject.layer == LayerMask.NameToLayer("Box"))
+        //        dragCoroutine = StartCoroutine(DragObject());
+
+
+        //    }
+        //} 
+
+
+        //else {
+        //RaycastHit hit;
+
+        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hitt, dragDistance, draggableLayer) && !isDragging)
             {
-                rb = hitObject.GetComponent<Rigidbody>();
+             rayy= new Ray(cam.transform.position, hitt.point);
+            hitrayDistance = hitt.distance;
+                GameObject hitObject = hitt.collider.gameObject;
 
-                if (rb != null)
+                if (hitObject.layer == LayerMask.NameToLayer("Box")&& hitObject.TryGetComponent<Rigidbody>(out rb))
                 {
-                    
+
+                    draggedObject = hitObject;
                     isDragging = true;
-                    rb.useGravity = false;
-                    //rb.constraints = RigidbodyConstraints.FreezeRotation;
-                   
-                    dragCoroutine =StartCoroutine(DragObject());
+                        rb.useGravity = false;
+                        //rb.constraints = RigidbodyConstraints.FreezeRotation;
+
+                        dragCoroutine = StartCoroutine(DragObject());
+                    
+
                 }
-                
+
             }
-        }
+        //}
+        
+        
+        
     }
-    
+    float hitrayDistance;
+    RaycastHit hitt;
     GameObject hitObject;
+    Ray rayy;
 
 
     private IEnumerator DragObject()
     {
+        
         while (isDragging)
         {
             
+            if(!UiText.IsActive()) UiText.gameObject.SetActive(true);
+            float distanceToDraggedObject = Vector3.Distance(cam.transform.position, rb.position);
+            UiText.text = "DROP (F)";
+
             Vector3 screenCenter = new Vector3(Screen.width / 2, Screen.height / 2, cam.WorldToScreenPoint(rb.transform.position).z);
             Vector3 worldPos = cam.ScreenToWorldPoint(screenCenter);
 
-            rb.MovePosition(worldPos);
+            //rb.MovePosition(worldPos);
+            draggedObject.transform.position = Vector3.MoveTowards(draggedObject.transform.position, hitt.point, dragSpeed*Time.deltaTime);
+            distanceToDraggedObject = Mathf.Lerp(distanceToDraggedObject, dragDistance-1f, dragSpeed * Time.deltaTime);
+            hitt.point= cam.transform.position+cam.transform.forward* distanceToDraggedObject;
+            //rayy =new Ray(cam.transform.position,rayy.direction * distanceToDraggedObject);
             if (playerInputController.onSlope)
             {
                 rb.velocity = new Vector3(playerInputController._rb.velocity.x, playerInputController._rb.velocity.y, playerInputController._rb.velocity.z);
@@ -79,23 +116,26 @@ public class DragAndDrop : MonoBehaviour
 
             // Check if there is something between the player and the dragged object
             Vector3 directionToDraggedObject = (rb.position - cam.transform.position).normalized;
-            float distanceToDraggedObject = Vector3.Distance(cam.transform.position, rb.position);
+            //distanceToDraggedObject = ;
 
-            if (Physics.Raycast(cam.transform.position, directionToDraggedObject, out RaycastHit hit, distanceToDraggedObject, stopDragLayer))
+            if (Physics.Raycast(cam.transform.position, directionToDraggedObject, out RaycastHit hit, Vector3.Distance(cam.transform.position, rb.position) , stopDragLayer))
             {
                 // If an obstacle is detected, stop dragging
-                
+                Debug.Log("BurayaGiriyor.");
                 StopDrag();
             }
             else if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, dragDistance, stopDragLayer))
             {
                 // If there's something in front of the player but not blocking the drag object, continue dragging
                 hitObject = hit.collider.gameObject;
-                if (hitObject.layer != LayerMask.NameToLayer("Box"))
+                if (hitObject.layer == LayerMask.NameToLayer("Box"))
                 {
-                   
+                    Debug.Log("BurayaGiriyor.!!!!");
                     StopDrag();
                 }
+            } else if (dragDistance<= distanceToDraggedObject) 
+            {
+                StopDrag();
             }
 
             yield return null;
@@ -117,8 +157,9 @@ public class DragAndDrop : MonoBehaviour
 
     public void StopDrag()
     {
-        
-            if (dragCoroutine != null)
+        UiText.gameObject.SetActive(false);
+        UiText.text = "PICK UP (F)";
+        if (dragCoroutine != null)
             {
                 StopCoroutine(dragCoroutine);
                 dragCoroutine = null;

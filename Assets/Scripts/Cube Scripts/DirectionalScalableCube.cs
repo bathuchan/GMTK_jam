@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.UIElements;
 
+
 public class DirectionalScalableCube : BaseCube
 {
     public float scaleMultiplier = 1.5f; // Büyüme çarpaný
@@ -56,8 +57,29 @@ public class DirectionalScalableCube : BaseCube
                 
                 scaleCoroutine= StartCoroutine(ScaleOverTime(transform.localScale, scaleMultiplier, scaleSpeed, true));
                 growthCount++;
+                switch (selectedAxis)
+                {
+                    case 0:
+
+                        growthCountX = growthCount;
+
+                        break;
+                    case 1: // Y ekseni
+
+                        growthCountY = growthCount;
+
+                        break;
+                    case 2: // Z ekseni
+
+
+                        growthCountZ = growthCount;
+
+                        break;
+                }
             }
         }
+
+        
     }
 
     public override void InteractAlt()
@@ -86,22 +108,83 @@ public class DirectionalScalableCube : BaseCube
         {
             if (scaleCoroutine == null)  // Coroutine'in tekrar baþlamasýný önle
             {
-                
-                StartCoroutine(ScaleOverTime(transform.localScale, scaleMultiplier, scaleSpeed,false));
+
+                scaleCoroutine = StartCoroutine(ScaleOverTime(transform.localScale, scaleMultiplier, scaleSpeed,false));
                 growthCount--;
+                switch (selectedAxis)
+                {
+                    case 0:
+
+                        growthCountX = growthCount;
+
+                        break;
+                    case 1: // Y ekseni
+
+                        growthCountY = growthCount;
+
+                        break;
+                    case 2: // Z ekseni
+
+
+                        growthCountZ = growthCount;
+
+                        break;
+                }
             }
         }
     }
-    public void ChangeAxis()
+    public void ChangeAxis(bool increase)
     {
-        base.InteractAlt();
+        selectedAxis= selectedAxis+(increase ? +1: -1);
+        
 
-        // Ekseni deðiþtir
-        selectedAxis = (selectedAxis + 1) % 3;
-        Debug.Log($"Büyüme ekseni deðiþtirildi: {selectedAxis}");
+        if (selectedAxis == 3) { selectedAxis = 0; }
+        else if (selectedAxis == -1) { selectedAxis = 2; }
+        
+        
     }
 
-    
+    public string GetAxisString() 
+    {
+        string axis = null;
+        switch (selectedAxis)
+        {
+            case 0: // X ekseni
+                axis = "X";
+                break;
+
+            case 1: // Y ekseni
+                axis = "Y";
+                break;
+
+            case 2: // Z ekseni
+                axis = "Z";
+                break;
+
+        }
+        return axis;
+    }
+    public Color ChangeTextColor()
+    {
+        Color color = Color.white;
+        switch (selectedAxis)
+        {
+            case 0: // X ekseni
+                color = Color.red;
+                break;
+
+            case 1: // Y ekseni
+                color = Color.green;
+                break;
+
+            case 2: // Z ekseni
+                color = Color.blue;
+                break;
+
+        }
+        return color;
+    }
+
 
     private IEnumerator ScaleOverTime(Vector3 startScale, float scaleMultipler, float duration,bool grow)
     {

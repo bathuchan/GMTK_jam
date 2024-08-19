@@ -41,7 +41,7 @@ public class HeavyCube : BaseCube
 
     public override void InteractAlt()
     {
-        if (  float.Parse(GetWeight())> minWeight )
+        if (float.Parse(GetWeight()) > minWeight)
         {
             SetWeight(rb.mass + weightDecrease); // Aðýrlýðý artýr
             currentWeight = Mathf.Round(rb.mass);
