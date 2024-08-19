@@ -55,7 +55,7 @@ public class DragAndDrop : MonoBehaviour
         hitt = hita;
        
 
-        if (hitt.transform.gameObject.layer == LayerMask.NameToLayer("Box") && hitt.transform.gameObject.TryGetComponent<Rigidbody>(out rb))
+        if (hitt.transform.tag == "Box" && hitt.transform.gameObject.TryGetComponent<Rigidbody>(out rb))
         {
 
             draggedObject = hitt.transform.gameObject; ;

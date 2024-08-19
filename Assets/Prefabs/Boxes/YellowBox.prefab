@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 617696214887356654}
   - component: {fileID: 4591205861628123380}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: 4wayArrows (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -99,7 +99,7 @@ GameObject:
   - component: {fileID: 3268502658334616901}
   - component: {fileID: 4444026150513560000}
   - component: {fileID: 4220088159726481345}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: YellowBox
   m_TagString: Box
   m_Icon: {fileID: 0}
@@ -206,7 +206,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2741584281741399126}
   serializedVersion: 4
-  m_Mass: 5
+  m_Mass: 50
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -275,7 +275,7 @@ GameObject:
   m_Component:
   - component: {fileID: 121922844196915089}
   - component: {fileID: 3732799698562220914}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: 4wayArrows
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -359,7 +359,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9144139445874273882}
   - component: {fileID: 8040167957055966276}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: 4wayArrows (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -443,7 +443,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2247857106178481877}
   - component: {fileID: 3391342081872862563}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: 4wayArrows (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -527,7 +527,7 @@ GameObject:
   m_Component:
   - component: {fileID: 715285297264481089}
   - component: {fileID: 111872489384799654}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: 4wayArrows (5)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -611,7 +611,7 @@ GameObject:
   m_Component:
   - component: {fileID: 708946893893786154}
   - component: {fileID: 4959196531017271562}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: 4wayArrows (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -7,11 +7,11 @@ public class DirectionalScalableCube : BaseCube
 {
     public float scaleMultiplier = 1.2f; // Büyüme çarpaný
     public float scaleSpeed = 1.0f; // Büyüme hýzý
-    public float maxScale = 5f;
-    public float minScale = 0.1f;// Maksimum ölçekleme faktörü
-    public int growthCountX = 0, growthCountY = 0, growthCountZ = 0;
-    public int growthCountMaxX = 5, growthCountMaxY = 5, growthCountMaxZ = 5;
-    public int growthCountMinX = -5, growthCountMinY = -5, growthCountMinZ = -5;
+ 
+    public int growthCountX = 2, growthCountY = 2, growthCountZ = 2;
+    [SerializeField]bool scaleWithGrowthCounts;
+    public int growthCountMaxX = 7, growthCountMaxY = 7, growthCountMaxZ = 7;
+    public int growthCountMinX = -3, growthCountMinY = -3, growthCountMinZ = -3;
 
     public int selectedAxis = 0; // 0: X, 1: Y, 2: Z
     //private bool isScaling = false; // Coroutine'in birden fazla kez baþlamasýný engellemek için
@@ -19,9 +19,13 @@ public class DirectionalScalableCube : BaseCube
     Coroutine scaleCoroutine=null;
     private void Start()
     {
-        transform.localScale = new Vector3(transform.localScale.x * Mathf.Pow(scaleMultiplier, growthCountX + growthCountMinX + 1), 
-            transform.localScale.y * Mathf.Pow(scaleMultiplier, growthCountY + growthCountMinY + 1), 
+        if (scaleWithGrowthCounts) 
+        {
+            transform.localScale = new Vector3(transform.localScale.x * Mathf.Pow(scaleMultiplier, growthCountX + growthCountMinX + 1),
+            transform.localScale.y * Mathf.Pow(scaleMultiplier, growthCountY + growthCountMinY + 1),
             transform.localScale.z * Mathf.Pow(scaleMultiplier, growthCountZ + growthCountMinZ + 1));
+        }
+        
 
         /*growthCountX = (int)Mathf.Round(transform.localScale.x);
         growthCountY = (int)Mathf.Round(transform.localScale.y);

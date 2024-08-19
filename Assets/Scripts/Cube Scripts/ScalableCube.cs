@@ -7,6 +7,7 @@ public class ScalableCube : BaseCube
     public float scaleSpeed = 1.0f; // Büyüme hýzýný kontrol eder
     public float raycastDistance = 10f; // Raycast uzunluðu
     public int growthCount = 2;
+    [SerializeField] bool scaleWithGrowthCounts;
     public int growthCountMax = 7;
     public int growthCountMin = -3;
 
@@ -14,7 +15,9 @@ public class ScalableCube : BaseCube
 
     private void Start()
     {
-        transform.localScale = transform.localScale * Mathf.Pow(scaleMultiplier, growthCount + growthCountMin + 1);
+        if(scaleWithGrowthCounts) transform.localScale = transform.localScale * Mathf.Pow(scaleMultiplier, growthCount + growthCountMin + 1);
+
+
     }
     public override void Interact()
     {

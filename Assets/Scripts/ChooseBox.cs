@@ -63,7 +63,7 @@ public class ChooseBox : MonoBehaviour
         if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit1, dragAndDrop.dragDistance, dragAndDrop.draggableLayer) && !dragAndDrop.isDragging)
         {
             GameObject hitObject = hit1.collider.gameObject;
-            if (hitObject.layer == LayerMask.NameToLayer("Box"))
+            if (hitObject.tag =="Box")
             {
                 dragAndDrop.UiText.gameObject.SetActive(true);
             }

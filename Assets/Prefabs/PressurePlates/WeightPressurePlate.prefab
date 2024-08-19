@@ -500,13 +500,14 @@ MonoBehaviour:
   match: 0
   animator: {fileID: 5027266818807588624}
   animatorMesh: {fileID: 5546301605135813171}
-  lampMesh: {fileID: 0}
+  lamp_INSIDE_Mesh:
+  - {fileID: 0}
+  - {fileID: 0}
   materials:
   - {fileID: 2100000, guid: ab0f9241ecbb56c4da2417314aa68e9c, type: 2}
   - {fileID: 2100000, guid: 79e2cee9affbd8c47bf4db31764aea2b, type: 2}
-  targetWeight: 55
+  targetWeight: 70
   text: {fileID: 7486871322273438077}
-  door: {fileID: 0}
 --- !u!1 &7310487737232626423
 GameObject:
   m_ObjectHideFlags: 0
