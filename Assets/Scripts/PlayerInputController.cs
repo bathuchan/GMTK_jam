@@ -28,6 +28,7 @@ public class PlayerInputController : MonoBehaviour
     public float runningFOV = 70f;
     public float crouchFOV = 60f;// FOV when running
     public float fovTransitionSpeed = 2f; // Speed of FOV transition
+    
 
     private float targetFOV;
 
@@ -66,13 +67,14 @@ public class PlayerInputController : MonoBehaviour
     private RaycastHit slopeHit;
 
     bool isWalking, isRunning,isCrouching;
-    [Header("Cam Wobble Settings")]
+    [Header("Camera Settings")]
     [Range(0f, 1f)]
     public float _lookTreshold = 0.25f;
     public float _lookSensitivityVertical = 5f;
     public float _lookSensitivityHorizontal = 5f;
 
     private float verticalRotation = 0;
+    public float rotationDeadAngle = 75f;
 
     [HideInInspector]public CapsuleCollider playerCollider = null;
     GameObject playerModel;
@@ -712,7 +714,7 @@ public class PlayerInputController : MonoBehaviour
             float mouseY = lookDir.y * (isMouse ? _lookSensitivityVertical * 0.1f : _lookSensitivityVertical) * Time.deltaTime;
 
             verticalRotation -= mouseY;
-            verticalRotation = Mathf.Clamp(verticalRotation, -70f, 70f);
+            verticalRotation = Mathf.Clamp(verticalRotation, -rotationDeadAngle, rotationDeadAngle);
 
             // Apply horizontal rotation to the player
             transform.Rotate(Vector3.up * mouseX);

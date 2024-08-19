@@ -10,6 +10,27 @@ public class ScalePressurePlate : GeneralPlateScript
 
     private void Start()
     {
+        if (scalableCube != null && scalableCube.growthCount == targetGrowthCount)
+        {
+            animatorMesh.material = materials[1];
+            foreach (MeshRenderer mr in lamp_INSIDE_Mesh)
+            {
+                mr.material = materials[1];
+            }
+            animator.SetBool("match", true);
+            match = true;
+        }
+        else
+        {
+            animatorMesh.material = materials[0];
+            foreach (MeshRenderer mr in lamp_INSIDE_Mesh)
+            {
+                mr.material = materials[0];
+            }
+            animator.SetBool("match", false);
+            match = false;
+        }
+
         if (changeSizeAutomatically)
         {
             switch (targetGrowthCount)

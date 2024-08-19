@@ -12,6 +12,26 @@ public class WeightPressurePlate : GeneralPlateScript
     private void Start()
     {
         text.text = targetWeight.ToString();
+        if (heavyCube != null && heavyCube.currentWeight >= targetWeight)
+        {
+            animatorMesh.material = materials[1];
+            foreach (MeshRenderer mr in lamp_INSIDE_Mesh)
+            {
+                mr.material = materials[1];
+            }
+            animator.SetBool("match", true);
+            match = true;
+        }
+        else
+        {
+            animatorMesh.material = materials[0];
+            foreach (MeshRenderer mr in lamp_INSIDE_Mesh)
+            {
+                mr.material = materials[0];
+            }
+            animator.SetBool("match", false);
+            match = false;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
