@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using static UnityEngine.InputSystem.InputAction;
 using System.Security.Cryptography;
 using TMPro;
+using Unity.Burst.CompilerServices;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerInputController : MonoBehaviour
@@ -290,7 +291,7 @@ public class PlayerInputController : MonoBehaviour
     {
         
         jumping = true;
-        if (coyoteTimeCounter > 0f && wasGrounded && canJump)
+        if (coyoteTimeCounter > 0 && wasGrounded && canJump)
         {
             coyoteTimeCounter = 0f;
             wasGrounded = false;
@@ -371,7 +372,7 @@ public class PlayerInputController : MonoBehaviour
     [HideInInspector]public bool inAir=false;
     IEnumerator InAir()
     {
-
+        
         inAir = true;
         bool grounded = false;
         airTime = 0f;
@@ -667,7 +668,10 @@ public class PlayerInputController : MonoBehaviour
             //if (waitCoroutine == null) StartCoroutine(WaitFor(2f, w8));
 
             
-            if (isWallrunning) { } else if (!isWallrunning && airCoroutine == null /*&& w8*/ && (_rb.velocity.magnitude >= vel.magnitude)) { _rb.velocity = new Vector3(0, _rb.velocity.y, 0); w8 = false; }
+            if (!isWallrunning && airCoroutine == null /*&& w8*/ /*&& (_rb.velocity.magnitude >= vel.magnitude)*/) 
+            {
+                _rb.velocity = new Vector3(0, _rb.velocity.y, 0); 
+            }
 
         }
     }
@@ -806,7 +810,7 @@ public class PlayerInputController : MonoBehaviour
     }
     IEnumerator CheckUp() 
     {
-        while (Physics.Raycast(playerModel.transform.position, playerModel.transform.up, 3f)) 
+        while (Physics.Raycast(playerModel.transform.position, playerModel.transform.up, transform.localScale.y * 2f)) 
         {
             canJump=false;
             yield return new WaitForSeconds(.5f);
@@ -826,8 +830,9 @@ public class PlayerInputController : MonoBehaviour
     private bool OnSlope() 
     {
         
-        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerCollider.height * 0.5f + 0.3f)) 
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerCollider.height * 0.5f + (playerCollider.height*transform.localScale.y)*0.4f)) 
         {
+            //Debug.Log("ONslope");
             float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
             return angle < maxSlopeAngle && angle != 0;
         }
@@ -840,14 +845,22 @@ public class PlayerInputController : MonoBehaviour
         return Vector3.ProjectOnPlane(vel, slopeHit.normal).normalized;
     }
 
-    [HideInInspector]public bool isDragging;
+    [HideInInspector]public bool isDragging=false;
     private void OnObjectDrag(InputAction.CallbackContext context)
     {
-        isDragging = !isDragging;
-        if (!isDragging) { dragAndDrop.StopDrag(); }
-        //dragAndDrop.TryStartDrag();
-    }
 
+        
+        
+        if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hitt, dragAndDrop.dragDistance, dragAndDrop.draggableLayer) 
+            && !isDragging &&!dragAndDrop.isDragging)
+        {
+            isDragging = dragAndDrop.TryStartDrag(hitt);
+        }else if (isDragging)
+        {
+            dragAndDrop.StopDrag();
+
+        }
+    }
     private void OnObjectDragCancel(InputAction.CallbackContext context)
     {
         //isDragging = false;
@@ -1066,7 +1079,7 @@ public class PlayerInputController : MonoBehaviour
     [HideInInspector]public bool onSlope;
     private void Update()
     {// Manage coyote time
-        if (isDragging && !dragAndDrop.isDragging) { dragAndDrop.TryStartDrag(); }
+        
 
         mainCamera.m_Lens.FieldOfView = Mathf.Lerp(mainCamera.m_Lens.FieldOfView, targetFOV, fovTransitionSpeed * Time.deltaTime);
         //mainCamera.m_Lens.FieldOfView = Mathf.Lerp(mainCamera.m_Lens.FieldOfView, targetFOV, fovTransitionSpeed * Time.deltaTime);
@@ -1076,12 +1089,12 @@ public class PlayerInputController : MonoBehaviour
 
         if (onSlope)
         {
-            jumpRaycastLenght = 1.12f * transform.localScale.x;
+            jumpRaycastLenght = 1.12f * transform.localScale.y;
             _rb.AddForce(-slopeHit.normal * 3f, ForceMode.Force);
         }
         else 
         {
-            jumpRaycastLenght = 1.02f * transform.localScale.x;
+            jumpRaycastLenght = 1.02f * transform.localScale.y;
         }
 
         if (IsGrounded())
@@ -1105,21 +1118,26 @@ public class PlayerInputController : MonoBehaviour
 
         HandleMovement();
         maxVelVector = Vector3.ClampMagnitude(_rb.velocity, maxVelocity);
-
+        if (inAir)
+            Debug.DrawRay(transform.position, -transform.up * jumpRaycastLenght, Color.cyan, 1f);
         // HandleJump();
         //Debug.Log("veloc:"+_rb.velocity);
     }
 
     private void FixedUpdate()
     {
-        
-        
+       
+
 
         HandleLook();
         if (isWallrunning)
         {
             WallrunningMovement();
         }
+
     }
+
+    
+    
 
 }

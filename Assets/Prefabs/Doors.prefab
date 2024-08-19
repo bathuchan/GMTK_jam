@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 557425503743826734}
   - component: {fileID: 3163475224238887524}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: Doors
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27,8 +27,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 14.77, y: -2, z: 0.9}
-  m_LocalScale: {x: 2, y: 2, z: 2}
-  m_ConstrainProportionsScale: 1
+  m_LocalScale: {x: 4, y: 4, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2903330695670633917}
   - {fileID: 6146994367302153733}
@@ -50,7 +50,6 @@ MonoBehaviour:
   animatorDoorR: {fileID: 7491926615789089256}
   conditions:
   - {fileID: 0}
-  - {fileID: 0}
   conditionsBool: 
   doorIsOpen: 0
   conditionsMet: 0
@@ -65,7 +64,7 @@ GameObject:
   - component: {fileID: 2139794377441076774}
   - component: {fileID: 1909429912114981234}
   - component: {fileID: 9132292431396819891}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: Sphere (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -148,7 +147,7 @@ GameObject:
   - component: {fileID: 9100494930039003374}
   - component: {fileID: 1881358300314935821}
   - component: {fileID: 2661880002162698522}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: Sphere (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -231,7 +230,7 @@ GameObject:
   - component: {fileID: 6092402014108094012}
   - component: {fileID: 2766674141880901599}
   - component: {fileID: 889304076749420160}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -313,7 +312,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2903330695670633917}
   - component: {fileID: 7491926615789089256}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: hingeR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -330,7 +329,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -1.0009999, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 2, z: 0.2}
+  m_LocalScale: {x: 1, y: 2, z: 0.27}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1615647580242539966}
@@ -369,7 +368,7 @@ GameObject:
   - component: {fileID: 2911230280212317636}
   - component: {fileID: 4485366963515463041}
   - component: {fileID: 4449573670199224692}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: DoorR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -421,7 +420,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7f306d2a2faf630418b7a5a1d8b8f03a, type: 2}
+  - {fileID: 2100000, guid: 82f65a015018e3e41b900ba097eca0d8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -475,7 +474,7 @@ GameObject:
   - component: {fileID: 2586104350609674613}
   - component: {fileID: 9024600211528490623}
   - component: {fileID: 5066113457734940636}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: Sphere (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -559,7 +558,7 @@ GameObject:
   - component: {fileID: 6978563614927054941}
   - component: {fileID: 8995258790066700618}
   - component: {fileID: 5361948476398603562}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: DoorL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -611,7 +610,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7f306d2a2faf630418b7a5a1d8b8f03a, type: 2}
+  - {fileID: 2100000, guid: 82f65a015018e3e41b900ba097eca0d8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -664,7 +663,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6146994367302153733}
   - component: {fileID: 4487151834643057392}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: hingeL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -681,7 +680,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 2, z: 0.2}
+  m_LocalScale: {x: 1, y: 2, z: 0.27}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 903470851944185176}
