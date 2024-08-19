@@ -11,6 +11,8 @@ public class DoorsScript : MonoBehaviour
     [SerializeField] private bool[] conditionsBool;
     [SerializeField] private bool doorIsOpen = false, conditionsMet;
 
+    public LevelManager levelManager;
+
     private void Start()
     {
         conditionsBool = new bool[conditions.Count];
@@ -37,6 +39,7 @@ public class DoorsScript : MonoBehaviour
             doorIsOpen = true;
             animatorDoorR.SetTrigger("Open");
             animatorDoorL.SetTrigger("Open");
+            levelManager.OnLevelSuccess();
         }
         else if (doorIsOpen && !conditionsMet)
         {

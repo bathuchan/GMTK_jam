@@ -8,4 +8,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/BatuTest.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 0
+    path: Assets/Scenes/selos.unity
+    guid: d5b87082646f7af4481adbb296ce19e0
+  - enabled: 1
+    path: Assets/Scenes/halilTest.unity
+    guid: 5a807406ae76b4e4ca32a88139f62e15
   m_configObjects: {}
