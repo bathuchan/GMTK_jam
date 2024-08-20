@@ -66,17 +66,26 @@ public class ChooseBox : MonoBehaviour
             if (hitObject.tag =="Box")
             {
                 dragAndDrop.UiText.gameObject.SetActive(true);
+                //dragAndDrop.rotateText.gameObject.SetActive(true);
             }
             else
             {
-                if (dragAndDrop.UiText.IsActive())
+                if (dragAndDrop.UiText.IsActive()) 
+                {
                     dragAndDrop.UiText.gameObject.SetActive(false);
+                    dragAndDrop.rotateText.gameObject.SetActive(false);
+                }
+                    
             }
         }
         else
         {
-            if (dragAndDrop.UiText.IsActive())
+            if (dragAndDrop.UiText.IsActive()) 
+            {
                 dragAndDrop.UiText.gameObject.SetActive(false);
+                dragAndDrop.rotateText.gameObject.SetActive(false);
+            }
+                
         }
     }
 

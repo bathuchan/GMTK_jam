@@ -262,7 +262,7 @@ GameObject:
   - component: {fileID: 4643979427000697207}
   m_Layer: 7
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -425,6 +425,7 @@ MonoBehaviour:
     m_Bits: 17
   playerInputController: {fileID: 0}
   UiText: {fileID: 0}
+  rotateText: {fileID: 0}
   dragSpeed: 10
   draggedObject: {fileID: 0}
 --- !u!1 &8204562153969250712

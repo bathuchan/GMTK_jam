@@ -352,7 +352,7 @@ MonoBehaviour:
   weightDecrease: -5
   maxWeight: 500
   minWeight: 10
-  currentWeight: 0
+  currentWeight: 50
 --- !u!1 &2764850773354390038
 GameObject:
   m_ObjectHideFlags: 0

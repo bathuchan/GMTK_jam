@@ -1,6 +1,7 @@
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using System.Collections.Generic;
+using EasyTransition;
 
 public class LevelManager : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class LevelManager : MonoBehaviour
 
 
     public static LevelManager MainLevelSystem;
+    public TransitionSettings transition;
     private void Start()
     {
         if (MainLevelSystem == null)
@@ -21,6 +23,7 @@ public class LevelManager : MonoBehaviour
     {
         currentLevelID++;
         SceneManager.LoadScene(currentLevelID);
-        
+        //TransitionManager.Instance().Transition(SceneManager.GetSceneAt(currentLevelID).name,transition , 2f);
+        Debug.Log("OnlevelSucces calisit");
     }
 }

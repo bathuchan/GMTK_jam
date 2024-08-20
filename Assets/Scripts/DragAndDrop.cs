@@ -1,10 +1,8 @@
 using System.Collections;
 using TMPro;
-using Unity.Burst.CompilerServices;
-using UnityEditor;
+
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
-using static UnityEngine.Timeline.AnimationPlayableAsset;
+
 
 public class DragAndDrop : MonoBehaviour
 {
@@ -17,6 +15,7 @@ public class DragAndDrop : MonoBehaviour
     public PlayerInputController playerInputController;
     private CapsuleCollider playerCollider;
     public TextMeshProUGUI UiText;
+    public TextMeshProUGUI rotateText;
     private ChooseBox chooseBox;
 
     void Start()
@@ -85,9 +84,12 @@ public class DragAndDrop : MonoBehaviour
             
             UiText.text = "DROP (F)";
 
-           
+            if(!rotateText.IsActive()) { rotateText.gameObject.SetActive(true); }
 
-            
+
+
+
+
             draggedObject.transform.position = Vector3.MoveTowards(draggedObject.transform.position, cam.transform.position + cam.transform.forward * distanceToDraggedObject, dragSpeed*Time.deltaTime);
             
             distanceToDraggedObject = Mathf.Lerp(distanceToDraggedObject, dragDistance-1f, dragSpeed * Time.deltaTime);
@@ -113,7 +115,7 @@ public class DragAndDrop : MonoBehaviour
             if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, Vector3.Distance(cam.transform.position, draggedObject.transform.position), stopDragLayer))
             {
                 // If an obstacle is detected, stop dragging
-                Debug.Log("BurayaGiriyor.");
+                
                 StopDrag();
             }
             
@@ -148,6 +150,7 @@ public class DragAndDrop : MonoBehaviour
     {
         UiText.gameObject.SetActive(false);
         UiText.text = "PICK UP (F)";
+        if (rotateText.IsActive()) { rotateText.gameObject.SetActive(false); }
         if (dragCoroutine != null)
             {
                 StopCoroutine(dragCoroutine);

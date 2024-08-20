@@ -123,7 +123,8 @@ public class PlayerInputController : MonoBehaviour
     float _jumpForceAtStart;
     private void Awake()
     {
-
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         targetFOV = normalFOV;
         mainCamera.m_Lens.FieldOfView = normalFOV;
 
@@ -221,6 +222,7 @@ public class PlayerInputController : MonoBehaviour
         _scaleScrollButtonAction.Disable();
         _scaleScrollUpAction.Disable();
         _scaleScrollDownAction.Disable();
+        _escapeButtonAction.Disable();
 
         _moveAction.performed -= OnWalk;
         _moveAction.canceled -= OnWalkCancel;
@@ -243,6 +245,8 @@ public class PlayerInputController : MonoBehaviour
         _scaleScrollButtonAction.performed -= OnScaleButton;
         _scaleScrollUpAction.performed -= OnScaleUp;
         _scaleScrollDownAction.performed -= OnScaleDown;
+
+        _escapeButtonAction.performed -= OnPauseButton;
 
         InputSystem.onDeviceChange -= OnDeviceChange; // Unsubscribe from device change events
     }
