@@ -15,7 +15,8 @@ public class HeavyCube : BaseCube
 
     private void Start()
     {
-
+        
+        SetWeight(currentWeight);
         for (int i = 0; i < transform.childCount; i++)
         {
             TextMeshPro tmp = transform.GetChild(i).GetComponent<TextMeshPro>();

@@ -118,11 +118,11 @@ Material:
     - _DstBlendAlpha: 0
     - _Emission: 1
     - _EnvironmentReflections: 1
-    - _FresnelPower: 1.98
+    - _FresnelPower: 0
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _InnerAlpha: 0.05
+    - _InnerAlpha: 0
     - _Metalic: 0
     - _Metallic: 0
     - _OcclusionStrength: 1
@@ -132,7 +132,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _Smoothness: 0.5
+    - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -140,8 +140,8 @@ Material:
     - _Surface: 0
     - _TilingX: 0
     - _TilingY: 0
-    - _WaveLenght: 0.27
-    - _WaveSpeed: 2
+    - _WaveLenght: 0.2
+    - _WaveSpeed: 3.5
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:

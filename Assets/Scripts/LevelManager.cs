@@ -1,9 +1,12 @@
 using UnityEngine.SceneManagement;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class LevelManager : MonoBehaviour
 {
-    public string halilTest;
+    
+    [SerializeField]int currentLevelID=0;
+
 
     public static LevelManager MainLevelSystem;
     private void Start()
@@ -16,6 +19,8 @@ public class LevelManager : MonoBehaviour
     }
     public void OnLevelSuccess()
     {
-        SceneManager.LoadScene(halilTest);
+        currentLevelID++;
+        SceneManager.LoadScene(currentLevelID);
+        
     }
 }

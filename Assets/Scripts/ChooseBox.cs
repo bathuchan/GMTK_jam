@@ -114,25 +114,25 @@ public class ChooseBox : MonoBehaviour
                     if (hit.transform.TryGetComponent<Animator>(out Animator anim))
                     {
                         anim.SetTrigger("LookingAt");
-                        foreach (TextMeshProUGUI text in UiTexts)
-                        {
-                            text.gameObject.SetActive(true);
-                            if (hit.transform.gameObject.TryGetComponent<ScalableCube>(out ScalableCube scalableCube))
-                            {
-                                UiTexts[1].text = "CHANGE SCALE";
-                                UiTexts[1].color = Color.yellow;
-                            }
-                            else if (hit.transform.gameObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube))
-                            {
-                                UiTexts[1].text = "CHANGE WEIGHT";
-                                UiTexts[1].color = Color.green;
-                            }
-                            else if (hit.transform.gameObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsCube))
-                            {
-                                UiTexts[1].text = "CHANGE SCALE IN:" + dsCube.GetAxisString() + System.Environment.NewLine + " (M.SCROLL/R)";
-                                UiTexts[1].color = dsCube.ChangeTextColor();
-                            }
-                        }
+                        //foreach (TextMeshProUGUI text in UiTexts)
+                        //{
+                        //    text.gameObject.SetActive(true);
+                        //    if (hit.transform.gameObject.TryGetComponent<ScalableCube>(out ScalableCube scalableCube))
+                        //    {
+                        //        UiTexts[1].text = "CHANGE SCALE";
+                        //        UiTexts[1].color = Color.yellow;
+                        //    }
+                        //    else if (hit.transform.gameObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube))
+                        //    {
+                        //        UiTexts[1].text = "CHANGE WEIGHT";
+                        //        UiTexts[1].color = Color.green;
+                        //    }
+                        //    else if (hit.transform.gameObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsCube))
+                        //    {
+                        //        UiTexts[1].text = "CHANGE SCALE IN:" + dsCube.GetAxisString() + System.Environment.NewLine + " (M.SCROLL/R)";
+                        //        UiTexts[1].color = dsCube.ChangeTextColor();
+                        //    }
+                        //}
                     }
 
                     lookingAt = hit.transform.gameObject;

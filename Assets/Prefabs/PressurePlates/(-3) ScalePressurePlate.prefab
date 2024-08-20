@@ -172,10 +172,10 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 512
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 3511
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
@@ -198,11 +198,12 @@ MonoBehaviour:
   match: 0
   animator: {fileID: 3528977449829860462}
   animatorMesh: {fileID: 1854830763748847}
-  lampMesh: {fileID: 0}
+  lamp_INSIDE_Mesh: []
   materials:
   - {fileID: 2100000, guid: ab0f9241ecbb56c4da2417314aa68e9c, type: 2}
   - {fileID: 2100000, guid: 7ed70ccb1ce011a4298f41be1d5dd377, type: 2}
   targetGrowthCount: -3
+  changeSizeAutomatically: 0
 --- !u!1 &7894298738833306331
 GameObject:
   m_ObjectHideFlags: 0

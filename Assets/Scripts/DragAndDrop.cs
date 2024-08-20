@@ -1,13 +1,14 @@
 using System.Collections;
 using TMPro;
 using Unity.Burst.CompilerServices;
+using UnityEditor;
 using UnityEngine;
 using static UnityEngine.Timeline.AnimationPlayableAsset;
 
 public class DragAndDrop : MonoBehaviour
 {
     private Camera cam;
-    private Rigidbody rb;
+    public Rigidbody rb;
     [HideInInspector]public bool isDragging = false;
     public float dragDistance;
     public LayerMask draggableLayer;
@@ -29,29 +30,10 @@ public class DragAndDrop : MonoBehaviour
     }
     public float dragSpeed;
     Coroutine dragCoroutine;
-    GameObject draggedObject;
+    public GameObject draggedObject;
     public bool TryStartDrag(RaycastHit hita)
     {
-        //if (chooseBox.lookingAt != null)
-        //{
-        //    hitt = new RaycastHit();
-        //    if (chooseBox.lookingAt.layer == LayerMask.NameToLayer("Box") && chooseBox.lookingAt.TryGetComponent<Rigidbody>(out rb))
-        //    {
-        //        draggedObject = chooseBox.lookingAt;
-        //        isDragging = true;
-        //        rb.useGravity = false;
-        //        //rb.constraints = RigidbodyConstraints.FreezeRotation;
-
-        //        dragCoroutine = StartCoroutine(DragObject());
-
-        //        return true;
-        //    }
-        //    return false;
-        //}
-
-
-        //else
-        //{
+        
         hitt = hita;
        
 
@@ -98,18 +80,13 @@ public class DragAndDrop : MonoBehaviour
             
             UiText.text = "DROP (F)";
 
-            //Vector3 screenCenter = new Vector3(Screen.width / 2, Screen.height / 2, cam.WorldToScreenPoint(rb.transform.position).z);
-            //Vector3 worldPos = cam.ScreenToWorldPoint(screenCenter);
+           
 
-
-            //draggedObject.transform.position = Vector3.MoveTowards(draggedObject.transform.position, hitt.point, dragSpeed * Time.deltaTime);
-
-            //rb.MovePosition(worldPos);
+            
             draggedObject.transform.position = Vector3.MoveTowards(draggedObject.transform.position, cam.transform.position + cam.transform.forward * distanceToDraggedObject, dragSpeed*Time.deltaTime);
-            //distanceToDraggedObject = Vector3.Distance(cam.transform.position, draggedObject.transform.position);
+            
             distanceToDraggedObject = Mathf.Lerp(distanceToDraggedObject, dragDistance-1f, dragSpeed * Time.deltaTime);
-            //hitt.point= cam.transform.position+cam.transform.forward* distanceToDraggedObject;
-            //rayy =new Ray(cam.transform.position,rayy.direction * distanceToDraggedObject);
+            
             if (playerInputController.onSlope)
             {
                 rb.velocity = new Vector3(playerInputController._rb.velocity.x, playerInputController._rb.velocity.y, playerInputController._rb.velocity.z);
@@ -128,23 +105,19 @@ public class DragAndDrop : MonoBehaviour
             Vector3 directionToDraggedObject = (rb.position - cam.transform.position).normalized;
             //distanceToDraggedObject = ;
 
-            if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, Vector3.Distance(cam.transform.position, draggedObject.transform.position) , stopDragLayer))
+            if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, Vector3.Distance(cam.transform.position, draggedObject.transform.position), stopDragLayer))
             {
                 // If an obstacle is detected, stop dragging
                 Debug.Log("BurayaGiriyor.");
                 StopDrag();
             }
-            //else if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, dragDistance, stopDragLayer))
-            //{
-            //    // If there's something in front of the player but not blocking the drag object, continue dragging
-            //    draggedObject = hit.collider.gameObject;
-            //    if (hitObject.layer == LayerMask.NameToLayer("Box"))
-            //    {
-            //        Debug.Log("BurayaGiriyor.!!!!");
-            //        StopDrag();
-            //    }
-            //}
-            else if (dragDistance<= distanceToDraggedObject) 
+            
+            else if (dragDistance <= distanceToDraggedObject)
+            {
+                StopDrag();
+            }
+            else if (Vector3.Distance((cam.transform.position + cam.transform.forward * distanceToDraggedObject), draggedObject.transform.position)
+                >= dragDistance * 0.75f) 
             {
                 StopDrag();
             }
@@ -175,11 +148,15 @@ public class DragAndDrop : MonoBehaviour
                 StopCoroutine(dragCoroutine);
                 dragCoroutine = null;
                 // Re-enable collision with player
-                //rb.constraints = RigidbodyConstraints.None;
+                rb.constraints = RigidbodyConstraints.None;
                 rb.useGravity = true;
-                rb = null;
+            playerInputController.isRightClick = false;
+            playerInputController.isLeftClick = false;
+            rb = null;
                 isDragging = false;
                 playerInputController.isDragging=false;
+            draggedObject=null;
+            
             }
 
             
