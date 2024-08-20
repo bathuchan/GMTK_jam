@@ -32,13 +32,6 @@ public class AudioManager : MonoBehaviour
 	}
     private void Start()
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-
-
         Play("MainTheme");
     }
 

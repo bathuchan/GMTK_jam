@@ -6,17 +6,22 @@ using EasyTransition;
 public class LevelManager : MonoBehaviour
 {
     
-    [SerializeField]int currentLevelID=0;
+    [SerializeField]int currentLevelID;
 
 
     public static LevelManager MainLevelSystem;
-    public TransitionSettings transition;
     private void Start()
     {
+
+        currentLevelID = SceneManager.GetActiveScene().buildIndex;
         if (MainLevelSystem == null)
         {
             MainLevelSystem = this;
-            DontDestroyOnLoad(this);
+            DontDestroyOnLoad(this.gameObject);
+        }
+        else
+        {
+            Destroy(this);
         }
     }
     public void OnLevelSuccess()

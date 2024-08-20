@@ -121,6 +121,9 @@ public class PlayerInputController : MonoBehaviour
     private DragAndDrop dragAndDrop;
     private ChooseBox chooseBox;
     float _jumpForceAtStart;
+
+    [Header("Pause Menu Script")]
+    public PauseMenuScript pauseMenuScript;
     private void Awake()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -144,6 +147,8 @@ public class PlayerInputController : MonoBehaviour
 
     private void Start()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         smoothShake.enabled = camWobbleOn;
         smoothShakeFrequency = smoothShake.positionShake.frequency;
         playerCollider = gameObject.GetComponentInChildren<CapsuleCollider>();
@@ -208,7 +213,6 @@ public class PlayerInputController : MonoBehaviour
 
 
     }
-
     private void OnDisable()
     {
         _moveAction.Disable();
@@ -286,7 +290,14 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnPauseButton(InputAction.CallbackContext context)
     {
-       
+        if (pauseMenuScript.GamePaused)
+        {
+            pauseMenuScript.Resume();
+        }
+        else
+        {
+            pauseMenuScript.Pause();
+        }
     }
 
     private void OnScaleUp(InputAction.CallbackContext context)
