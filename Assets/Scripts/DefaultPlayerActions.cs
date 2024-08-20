@@ -125,6 +125,15 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Pause"",
+                    ""type"": ""Button"",
+                    ""id"": ""f9acbba7-70cc-41e9-b4e1-971a835694c6"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -488,6 +497,28 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
                     ""action"": ""AxisChange"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f26c064b-6f58-4b13-8059-2611126365a9"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5c74751c-68e8-45e4-b97d-e24941f1cbe4"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Pause"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1086,6 +1117,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
         m_Player_AxisUp = m_Player.FindAction("AxisUp", throwIfNotFound: true);
         m_Player_AxisDown = m_Player.FindAction("AxisDown", throwIfNotFound: true);
         m_Player_AxisChange = m_Player.FindAction("AxisChange", throwIfNotFound: true);
+        m_Player_Pause = m_Player.FindAction("Pause", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1170,6 +1202,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_AxisUp;
     private readonly InputAction m_Player_AxisDown;
     private readonly InputAction m_Player_AxisChange;
+    private readonly InputAction m_Player_Pause;
     public struct PlayerActions
     {
         private @DefaultPlayerActions m_Wrapper;
@@ -1185,6 +1218,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
         public InputAction @AxisUp => m_Wrapper.m_Player_AxisUp;
         public InputAction @AxisDown => m_Wrapper.m_Player_AxisDown;
         public InputAction @AxisChange => m_Wrapper.m_Player_AxisChange;
+        public InputAction @Pause => m_Wrapper.m_Player_Pause;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1227,6 +1261,9 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
             @AxisChange.started += instance.OnAxisChange;
             @AxisChange.performed += instance.OnAxisChange;
             @AxisChange.canceled += instance.OnAxisChange;
+            @Pause.started += instance.OnPause;
+            @Pause.performed += instance.OnPause;
+            @Pause.canceled += instance.OnPause;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1264,6 +1301,9 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
             @AxisChange.started -= instance.OnAxisChange;
             @AxisChange.performed -= instance.OnAxisChange;
             @AxisChange.canceled -= instance.OnAxisChange;
+            @Pause.started -= instance.OnPause;
+            @Pause.performed -= instance.OnPause;
+            @Pause.canceled -= instance.OnPause;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1457,6 +1497,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
         void OnAxisUp(InputAction.CallbackContext context);
         void OnAxisDown(InputAction.CallbackContext context);
         void OnAxisChange(InputAction.CallbackContext context);
+        void OnPause(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

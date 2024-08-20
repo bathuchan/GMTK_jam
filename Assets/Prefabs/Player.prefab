@@ -275,7 +275,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7496248192701248326}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.38420483, z: -0, w: 0.92324793}
+  m_LocalRotation: {x: 0, y: -0.38420668, z: 0, w: 0.92324716}
   m_LocalPosition: {x: 3, y: 1, z: 7}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
@@ -416,6 +416,7 @@ MonoBehaviour:
   rb: {fileID: 0}
   isDragging: 0
   dragDistance: 8
+  rotationBreakMultiplier: 1
   draggableLayer:
     serializedVersion: 2
     m_Bits: 3601
@@ -424,7 +425,7 @@ MonoBehaviour:
     m_Bits: 17
   playerInputController: {fileID: 0}
   UiText: {fileID: 0}
-  dragSpeed: 12
+  dragSpeed: 10
   draggedObject: {fileID: 0}
 --- !u!1 &8204562153969250712
 GameObject:

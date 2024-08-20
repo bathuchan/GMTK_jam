@@ -18,7 +18,8 @@ public class PlayerInputController : MonoBehaviour
     private DefaultPlayerActions _defaultPlayerActions;
 
     private InputAction _moveAction, _lookAction, _jumpAction
-        , _runAction, _crouchAction, _dragAction, _leftClickAction, _rightClickAction, _scaleScrollUpAction, _scaleScrollDownAction, _scaleScrollButtonAction;
+        , _runAction, _crouchAction, _dragAction, _leftClickAction, _rightClickAction, 
+        _scaleScrollUpAction, _scaleScrollDownAction, _scaleScrollButtonAction,_escapeButtonAction;
 
     //private InputAction _shootAction;
 
@@ -174,6 +175,9 @@ public class PlayerInputController : MonoBehaviour
         _scaleScrollUpAction.Enable();
         _scaleScrollDownAction = _defaultPlayerActions.Player.AxisDown;
         _scaleScrollDownAction.Enable();
+
+        _escapeButtonAction = _defaultPlayerActions.Player.Pause;
+        _escapeButtonAction.Enable();
         //_shootAction = _defaultPlayerActions.Player.Fire;
         //_shootAction.Enable();
 
@@ -195,6 +199,8 @@ public class PlayerInputController : MonoBehaviour
         _scaleScrollButtonAction.performed += OnScaleButton;
         _scaleScrollUpAction.performed += OnScaleUp;
         _scaleScrollDownAction.performed += OnScaleDown;
+
+        _escapeButtonAction.performed += OnPauseButton;
         //_shootAction.performed += OnShoot;
         //_shootAction.canceled += OnShootCancel;
         InputSystem.onDeviceChange += OnDeviceChange; // Subscribe to device change events
@@ -255,7 +261,7 @@ public class PlayerInputController : MonoBehaviour
         else {
             if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
             {
-                if (hit.transform.CompareTag("BlueBox") && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
+                if (hit.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox") && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
                 {
                     if (hit.transform.TryGetComponent<Animator>(out Animator anim))
                     {
@@ -274,7 +280,10 @@ public class PlayerInputController : MonoBehaviour
 
         }
     }
-
+    private void OnPauseButton(InputAction.CallbackContext context)
+    {
+       
+    }
 
     private void OnScaleUp(InputAction.CallbackContext context)
     {
@@ -290,7 +299,7 @@ public class PlayerInputController : MonoBehaviour
         {
             if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
             {
-                if (hit.transform.CompareTag("BlueBox") && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
+                if (hit.transform.gameObject.layer==LayerMask.NameToLayer("BlueBox")  && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
                 {
                     if (hit.transform.TryGetComponent<Animator>(out Animator anim))
                     {
@@ -325,9 +334,9 @@ public class PlayerInputController : MonoBehaviour
         {
             if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
             {
-                if (hit.transform.CompareTag("BlueBox") && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
+                if (hit.transform.gameObject.layer==LayerMask.NameToLayer("BlueBox")&& objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
                 {
-                    if (hit.transform.TryGetComponent<Animator>(out Animator anim))
+                    if (hit.transform.TryGetComponent<Animator>(out Animator anim)&&dsc!=null)
                     {
                         anim.SetTrigger("LookingAt");
                         dsc.ChangeAxis(false);
@@ -990,7 +999,7 @@ public class PlayerInputController : MonoBehaviour
         {
             if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
             {
-                if (hit.transform.CompareTag("Box"))
+                if (hit.transform.tag == "Box"||(hit.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("YellowBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("GreenBox")))
                 {
                     if (hit.transform.TryGetComponent<Animator>(out Animator anim))
                     {
@@ -1035,18 +1044,29 @@ public class PlayerInputController : MonoBehaviour
     
     IEnumerator RotateObject ()
     {
+        float temp = dragAndDrop.rotationBreakMultiplier;
         while (isLeftClick) {
             rotation = _lookAction.ReadValue<Vector2>();
             rotation *= rotateSpeed;
-            dragAndDrop.draggedObject.transform.Rotate(Vector3.up, rotation.x, Space.World);
-            dragAndDrop.draggedObject.transform.Rotate(Vector3.right, rotation.y, Space.World);
             
-            dragAndDrop.rb.constraints = RigidbodyConstraints.FreezeAll;
+                dragAndDrop.draggedObject.transform.Rotate(Vector3.up, rotation.x, Space.World);
+                dragAndDrop.draggedObject.transform.Rotate(Vector3.right, rotation.y, Space.World);
+            
+           
+            //dragAndDrop.rb.velocity = Vector3.zero;
+            //dragAndDrop.rb.angularDrag = 5f;
+            dragAndDrop.rotationBreakMultiplier = temp* 0.75f;
+
+            //dragAndDrop.rb.constraints = RigidbodyConstraints.None;
             yield return null;
 
         }
-        if(dragAndDrop.rb!=null)
-            dragAndDrop.rb.constraints = RigidbodyConstraints.None;
+        if (dragAndDrop.rb != null) 
+        {
+            dragAndDrop.rb.angularDrag = 0.05f;
+        }
+        dragAndDrop.rotationBreakMultiplier = temp;
+
         rotateCoroutine = null;
     }
 
@@ -1088,7 +1108,7 @@ public class PlayerInputController : MonoBehaviour
         {
             if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
             {
-                if (hit.transform.CompareTag("Box"))
+                if (hit.transform.tag == "Box"||(hit.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("YellowBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("GreenBox")))
                 {
                     if (hit.transform.TryGetComponent<Animator>(out Animator anim))
                     {

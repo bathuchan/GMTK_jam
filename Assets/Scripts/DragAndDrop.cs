@@ -3,6 +3,7 @@ using TMPro;
 using Unity.Burst.CompilerServices;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem.HID;
 using static UnityEngine.Timeline.AnimationPlayableAsset;
 
 public class DragAndDrop : MonoBehaviour
@@ -10,7 +11,7 @@ public class DragAndDrop : MonoBehaviour
     private Camera cam;
     public Rigidbody rb;
     [HideInInspector]public bool isDragging = false;
-    public float dragDistance;
+    public float dragDistance, rotationBreakMultiplier=1f;
     public LayerMask draggableLayer;
     public LayerMask stopDragLayer;
     public PlayerInputController playerInputController;
@@ -22,8 +23,7 @@ public class DragAndDrop : MonoBehaviour
     {
         cam = Camera.main;
         playerInputController = GameObject.FindAnyObjectByType<PlayerInputController>();
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        
         playerCollider = playerInputController.playerCollider;
         chooseBox=GetComponent<ChooseBox>();
 
@@ -33,21 +33,25 @@ public class DragAndDrop : MonoBehaviour
     public GameObject draggedObject;
     public bool TryStartDrag(RaycastHit hita)
     {
-        
         hitt = hita;
        
 
-        if (hitt.transform.tag == "Box" && hitt.transform.gameObject.TryGetComponent<Rigidbody>(out rb))
+        if ((hitt.transform.tag == "Box"|| hitt.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox"))|| hitt.transform.gameObject.layer == LayerMask.NameToLayer("GreenBox")|| hitt.transform.gameObject.layer == LayerMask.NameToLayer("YellowBox"))
         {
 
-            draggedObject = hitt.transform.gameObject; ;
-            isDragging = true;
-            rb.useGravity = false;
-            //rb.constraints = RigidbodyConstraints.FreezeRotation;
+            if (hitt.transform.gameObject.TryGetComponent<Rigidbody>(out rb)) 
+            {
+                draggedObject = hitt.transform.gameObject; ;
+                isDragging = true;
+                
+                rb.useGravity = false;
+                //rb.constraints = RigidbodyConstraints.FreezeRotation;
+                rb.angularDrag = 5f;
+                dragCoroutine = StartCoroutine(DragObject());
+                draggedObject.transform.position = hitt.point;
 
-            dragCoroutine = StartCoroutine(DragObject());
-            draggedObject.transform.position = hitt.point;
-
+                
+            }
             return true;
         }
         else { return false; }
@@ -69,6 +73,7 @@ public class DragAndDrop : MonoBehaviour
 
     private IEnumerator DragObject()
     {
+        
         float distanceToDraggedObject = dragDistance - 1f;
         draggedObject.transform.position = cam.transform.forward * distanceToDraggedObject;
 
@@ -117,7 +122,7 @@ public class DragAndDrop : MonoBehaviour
                 StopDrag();
             }
             else if (Vector3.Distance((cam.transform.position + cam.transform.forward * distanceToDraggedObject), draggedObject.transform.position)
-                >= dragDistance * 0.75f) 
+                >= dragDistance * 0.75f * rotationBreakMultiplier) 
             {
                 StopDrag();
             }
@@ -148,10 +153,11 @@ public class DragAndDrop : MonoBehaviour
                 StopCoroutine(dragCoroutine);
                 dragCoroutine = null;
                 // Re-enable collision with player
-                rb.constraints = RigidbodyConstraints.None;
+                //rb.constraints = RigidbodyConstraints.None;
                 rb.useGravity = true;
             playerInputController.isRightClick = false;
             playerInputController.isLeftClick = false;
+            rb.angularDrag = 0.05f;
             rb = null;
                 isDragging = false;
                 playerInputController.isDragging=false;
