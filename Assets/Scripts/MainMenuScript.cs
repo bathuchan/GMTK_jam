@@ -15,6 +15,7 @@ public class MainMenuScript : MonoBehaviour
         mainMenuUI.SetActive(true);
         settingsMenuUI.SetActive(false);
         creditsMenuUI.SetActive(false);
+        levelsMenuUI.SetActive(false);
     }
     public void Levels()
     {
@@ -64,6 +65,7 @@ public class MainMenuScript : MonoBehaviour
     public void StartLevel(int levelIndex)
     {
         Debug.Log("Starting level...");
+        Time.timeScale = 1f;
         SceneManager.LoadSceneAsync(levelIndex+1);
     }
     public void Quit()

@@ -54,6 +54,7 @@ public class PauseMenuScript : MonoBehaviour
     }
     public void Quit()
     {
+        Time.timeScale = 1f;
         SceneManager.LoadSceneAsync(0);        
     }
 }
