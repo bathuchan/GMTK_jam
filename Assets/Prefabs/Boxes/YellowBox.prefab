@@ -101,7 +101,7 @@ GameObject:
   - component: {fileID: 4220088159726481345}
   m_Layer: 9
   m_Name: YellowBox
-  m_TagString: Box
+  m_TagString: Draggable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -116,7 +116,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.3204556, y: 1.0000002, z: -4.9999995}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 121922844196915089}
@@ -260,9 +260,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseScale: 1
   scaleMultiplier: 1.2
-  scaleSpeed: 1
-  raycastDistance: 10
-  growthCount: 0
+  duration: 1
+  growthCount: 7
+  scaleWithGrowthCounts: 1
   growthCountMax: 7
   growthCountMin: -3
 --- !u!1 &4906601295857843299

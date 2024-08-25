@@ -9,8 +9,10 @@ public class BaseCube : MonoBehaviour
 
     protected BoxCollider boxCollider;
 
+    protected NewDragAndDrop dragAndDrop;
     protected void Awake()
     {
+        dragAndDrop = GameObject.FindAnyObjectByType<NewDragAndDrop>();
         baseScale = transform.localScale.x;
         rb = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
@@ -47,5 +49,11 @@ public class BaseCube : MonoBehaviour
         Debug.Log("Interacting with f");
     }
 
-   
+    private void OnJointBreak(float breakForce)
+    {
+        Debug.Log("JointBROKEN");
+        if (rb != null) {
+            dragAndDrop.StopDrag();
+        }
+    }
 }

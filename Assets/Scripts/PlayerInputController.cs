@@ -1,16 +1,10 @@
 using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Cinemachine;
 using SmoothShakeFree;
-using Unity.VisualScripting;
-using System.Runtime.CompilerServices;
-using static UnityEngine.InputSystem.InputAction;
-using System.Security.Cryptography;
-using TMPro;
-using Unity.Burst.CompilerServices;
-using UnityEditor;
+
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerInputController : MonoBehaviour
@@ -38,32 +32,41 @@ public class PlayerInputController : MonoBehaviour
     [Header("Movement Settings")]
     public float _moveSpeed = 5f;
     public float _runSpeedMultiplier = 5f; // Multiplier for run speed
-    public float defautSpeedDropOff = 1f;
+    
+    public float maxVelocity = 10f;
+    Vector3 maxVelVector;
+    public float groundCheckDistance = 0.1f; // Distance from the collider to check for the ground
+    //public LayerMask groundLayer; // Layer to detect as ground
+
     public float _jumpForce = 5f; // Jump force
     public float _jumpForceOnSlope = 2.5f;
     public float jumpRaycastLenght = 1.02f;
-    public float maxVelocity = 10f;
-    Vector3 maxVelVector;
+    private CapsuleCollider capsuleCollider;
+    private float colliderRadius;
+    private Vector3 spherePosition;
+    private bool showJumpGizmos = false;
 
     [Header("Wallrun Settings")]
-    public LayerMask whatIsWall;
-    public float wallCheckDistance = 1f, wallrunForce, maxWallrunSpeed, minJumpHeight = 2.2f;
-    RaycastHit rightWallHit, leftWallHit;
-    bool isWallRight, isWallLeft;
-    [HideInInspector] public bool isWallrunning;
-    public float cameraTiltSpeed = 5f; // Speed of the camera tilt
-    public float maxCameraTilt = 15f; // Maximum tilt angle
-    private float currentCameraTilt = 0f; // Current tilt angle
-    public float wallJumpCooldown = 0.5f; // Cooldown time after a wall jump
-    public float stopWallrunBelow = 1.05f;
-    public float wallrunStopJumpBoostMultipler = 1f;
-    public float downForceAmount = 0.2f;
-    private bool canWallJump = true;
+    public Wallrun wallrunScript;
+    //public LayerMask whatIsWall;
+    //public float wallCheckDistance = 1f, wallrunForce, maxWallrunSpeed, minJumpHeight = 2.2f;
+    //RaycastHit rightWallHit, leftWallHit;
+    //bool isWallRight, isWallLeft;
+    //[HideInInspector] public bool isWallrunning;
+    //public float cameraTiltSpeed = 5f; // Speed of the camera tilt
+    //public float maxCameraTilt = 15f; // Maximum tilt angle
+    //private float currentCameraTilt = 0f; // Current tilt angle
+    //public float wallJumpCooldown = 0.5f; // Cooldown time after a wall jump
+    //public float stopWallrunBelow = 1.05f;
+    //public float wallrunStopJumpBoostMultipler = 1f;
+    //public float downForceAmount = 0.2f;
+    //private bool canWallJump = true;
 
 
     [Header("Crouch Settings")]
     public float _crouchSpeedMultiplier = 0.5f;
     public float crouchYscale;
+    public LayerMask whatIsOnTop;
     private float startYscale;
 
     [Header("Slope Settings")]
@@ -82,7 +85,7 @@ public class PlayerInputController : MonoBehaviour
 
 
     [HideInInspector] public CapsuleCollider playerCollider = null;
-    GameObject playerModel;
+    
 
 
 
@@ -118,9 +121,10 @@ public class PlayerInputController : MonoBehaviour
 
     RaycastHit hit;
     [HideInInspector] public Vector2 cumulativeMouseDelta;
-    private DragAndDrop dragAndDrop;
+    private NewDragAndDrop dragAndDrop;
     private ChooseBox chooseBox;
     float _jumpForceAtStart;
+    Interactor interactor;
 
     [Header("Pause Menu Script")]
     public PauseMenuScript pauseMenuScript;
@@ -134,8 +138,8 @@ public class PlayerInputController : MonoBehaviour
         _defaultPlayerActions = new DefaultPlayerActions();
         _rb = GetComponent<Rigidbody>();
         smoothShake = GetComponentInChildren<SmoothShake>();
-
-        dragAndDrop = GetComponent<DragAndDrop>();
+        wallrunScript = GetComponent<Wallrun>();
+        dragAndDrop = GetComponent<NewDragAndDrop>();
         chooseBox = GetComponent<ChooseBox>();
         _jumpForceAtStart = _jumpForce;
 
@@ -149,11 +153,19 @@ public class PlayerInputController : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        // Get the CapsuleCollider component
+        capsuleCollider = GetComponentInChildren<CapsuleCollider>();
+
+        // Calculate the collider's radius
+        colliderRadius = capsuleCollider.radius * 0.8f; // Slightly reduce to avoid edge cases
+
         smoothShake.enabled = camWobbleOn;
         smoothShakeFrequency = smoothShake.positionShake.frequency;
         playerCollider = gameObject.GetComponentInChildren<CapsuleCollider>();
-        playerModel = gameObject.transform.GetChild(0).gameObject;
-        startYscale = playerModel.transform.localScale.y;
+        
+        startYscale = transform.localScale.y;
+        xRotation=mainCamera.transform.localEulerAngles.x;
+        interactor= GetComponentInChildren<Interactor>();
     }
 
 
@@ -257,116 +269,134 @@ public class PlayerInputController : MonoBehaviour
     DirectionalScalableCube dsc;
     private void OnScaleButton(InputAction.CallbackContext context)
     {
-
-        GameObject objectToChangeAxis = chooseBox.lookingAt;
-        if (chooseBox.lookingAt != null && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
+        //if (pauseMenuScript.GamePaused) { return; }
+        
+        if (interactor._colliders[0] != null && interactor._colliders[0].TryGetComponent<DirectionalScalableCube>(out dsc))
         {
             dsc.ChangeAxis(true);
-            chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-            chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
+            //chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
+            //chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
             dsc = null;
         }
-        else {
-            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
-            {
-                if (hit.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox") && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
-                {
-                    if (hit.transform.TryGetComponent<Animator>(out Animator anim))
-                    {
-                        anim.SetTrigger("LookingAt");
-                        dsc.ChangeAxis(true);
-                        chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-                        chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
-                        chooseBox.lookingAt = hit.transform.gameObject;
-                        dsc = null;
-                    }
+        //else {
+        //    if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
+        //    {
+        //        if (hit.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox") && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
+        //        {
+        //            if (hit.transform.TryGetComponent<Animator>(out Animator anim))
+        //            {
+        //                anim.SetTrigger("LookingAt");
+        //                dsc.ChangeAxis(true);
+        //                chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
+        //                chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
+        //                chooseBox.lookingAt = hit.transform.gameObject;
+        //                dsc = null;
+        //            }
 
-                }
+        //        }
 
 
-            }
+        //    }
 
-        }
+        //}
     }
     private void OnPauseButton(InputAction.CallbackContext context)
     {
-        if (pauseMenuScript.GamePaused)
-        {
-            pauseMenuScript.Resume();
-        }
-        else
-        {
-            pauseMenuScript.Pause();
-        }
+        //if (pauseMenuScript.GamePaused)
+        //{
+        //    pauseMenuScript.Resume();
+        //}
+        //else
+        //{
+        //    pauseMenuScript.Pause();
+        //}
     }
 
     private void OnScaleUp(InputAction.CallbackContext context)
     {
-        GameObject objectToChangeAxis = chooseBox.lookingAt;
-        if (chooseBox.lookingAt != null && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
+        if (dragAndDrop.isDragging) 
+        {
+            dragAndDrop.draggedHolder.transform.localPosition = new Vector3(dragAndDrop.draggedHolder.transform.localPosition.x
+                , dragAndDrop.draggedHolder.transform.localPosition.y, Mathf.Clamp(dragAndDrop.draggedHolder.transform.localPosition.z +  0.1f, 2f, 4.5f));
+            
+
+            return;
+        }
+        //if (pauseMenuScript.GamePaused) { return; }
+        
+        if (interactor._colliders[0] != null && interactor._colliders[0].TryGetComponent<DirectionalScalableCube>(out dsc))
         {
             dsc.ChangeAxis(true);
-            chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-            chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
+            //chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
+            //chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
             dsc = null;
         }
-        else
-        {
-            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
-            {
-                if (hit.transform.gameObject.layer==LayerMask.NameToLayer("BlueBox")  && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
-                {
-                    if (hit.transform.TryGetComponent<Animator>(out Animator anim))
-                    {
-                        anim.SetTrigger("LookingAt");
-                        dsc.ChangeAxis(true);
-                        chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-                        chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
-                        chooseBox.lookingAt = hit.transform.gameObject;
-                        dsc = null;
-                    }
+        //else
+        //{
+        //    if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
+        //    {
+        //        if (hit.transform.gameObject.layer==LayerMask.NameToLayer("BlueBox")  && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
+        //        {
+        //            if (hit.transform.TryGetComponent<Animator>(out Animator anim))
+        //            {
+        //                anim.SetTrigger("LookingAt");
+        //                dsc.ChangeAxis(true);
+        //                chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
+        //                chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
+        //                chooseBox.lookingAt = hit.transform.gameObject;
+        //                dsc = null;
+        //            }
 
-                }
+        //        }
 
 
-            }
+        //    }
 
-        }
+        //}
 
     }
 
     private void OnScaleDown(InputAction.CallbackContext context)
     {
-        GameObject objectToChangeAxis = chooseBox.lookingAt;
-        if (chooseBox.lookingAt != null && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
+
+        if (dragAndDrop.isDragging)
+        {
+            dragAndDrop.draggedHolder.transform.localPosition = new Vector3(dragAndDrop.draggedHolder.transform.localPosition.x
+                , dragAndDrop.draggedHolder.transform.localPosition.y,Mathf.Clamp(dragAndDrop.draggedHolder.transform.localPosition.z - 0.1f, 2f, 4.5f)) ;
+
+            return;
+        }
+        //if (pauseMenuScript.GamePaused) { return; }
+        
+        if (interactor._colliders[0] != null && interactor._colliders[0].TryGetComponent<DirectionalScalableCube>(out dsc))
         {
             dsc.ChangeAxis(false);
-            chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-            chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
+            //chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
+            //chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
             dsc = null;
         }
-        else
-        {
-            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
-            {
-                if (hit.transform.gameObject.layer==LayerMask.NameToLayer("BlueBox")&& objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
-                {
-                    if (hit.transform.TryGetComponent<Animator>(out Animator anim)&&dsc!=null)
-                    {
-                        anim.SetTrigger("LookingAt");
-                        dsc.ChangeAxis(false);
-                        chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-                        chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
-                        chooseBox.lookingAt = hit.transform.gameObject;
-                        dsc = null;
-                    }
+        //else
+        //{
+        //    if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
+        //    {
+        //        if (hit.transform.gameObject.layer==LayerMask.NameToLayer("BlueBox")&& objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
+        //        {
+        //            if (hit.transform.TryGetComponent<Animator>(out Animator anim)&&dsc!=null)
+        //            {
+        //                anim.SetTrigger("LookingAt");
+        //                dsc.ChangeAxis(false);
+        //                chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
+        //                chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
+        //                chooseBox.lookingAt = hit.transform.gameObject;
+        //                dsc = null;
+        //            }
 
-                }
+        //        }
 
 
-            }
+        //    }
 
-        }
+        //}
 
     }
 
@@ -399,6 +429,7 @@ public class PlayerInputController : MonoBehaviour
     {
 
         jumping = true;
+        showJumpGizmos=true;
         if (coyoteTimeCounter > 0 && wasGrounded && canJump)
         {
             if (_rb.useGravity == false) { _rb.useGravity = true; }
@@ -412,6 +443,8 @@ public class PlayerInputController : MonoBehaviour
 
 
     }
+    
+   
 
     private void Jump()
     {
@@ -422,284 +455,130 @@ public class PlayerInputController : MonoBehaviour
         {
             airCoroutine = StartCoroutine(InAir());
         }
-
-
+        
+         //wallrunScript.CalculateMaxJumpHeight(_jumpForce);
+        
 
     }
+    
 
-
+    
     private void OnJumpCancel(InputAction.CallbackContext context)
     {
         jumping = false;
+        if (reduceCoroutine != null) { StopCoroutine(reduceCoroutine); }
+        if (airCoroutine == null) { airCoroutine = StartCoroutine(InAir()); }
 
-        if (isWallrunning /*&& canWallJump*/)
-        {
-            //if (waitCoroutine == null)
-            //{
-            //    waitCoroutine = StartCoroutine(WaitFor(4f, w8));
-            //}
-            //if (IsGrounded() && waitCoroutine != null)
-            //{
-            //    w8 = true;
-            //    waitCoroutine = null;
-            //}
-            Debug.Log("Wall Jump Attempted");
-
-            if (reduceCoroutine != null) { StopCoroutine(reduceCoroutine); }
-            if (airCoroutine == null) { airCoroutine = StartCoroutine(InAir()); }
+        wallrunScript.StopWallrun();
+        if (wallrunScript. wallrideCooldown == null) wallrunScript.wallrideCooldown = StartCoroutine(wallrunScript.WallJumpCooldown());
 
 
-
-
-            // Perform the wall jump
-
-            StopWallrun();
-            // Start the cooldown
-            StartCoroutine(WallJumpCooldown());
-
-
-        }
     }
-    private IEnumerator WallJumpCooldown()
-    {
-        canWallJump = false;
-        isWallrunning = false;
-        yield return new WaitForSeconds(wallJumpCooldown);
-        canWallJump = true;
-    }
+    
 
     [HideInInspector] public bool inAir = false;
     IEnumerator InAir()
     {
+        if (reduceCoroutine != null) 
+        {
+            StopCoroutine(reduceCoroutine);
+            reduceCoroutine=null;
+        }
 
         inAir = true;
-        bool grounded = false;
-        airTime = 0f;
 
-
-        while (!grounded)
+        
+        Debug.Log("zeminde degil");
+        
+        while (inAir)
         {
-
-            airTime += Time.deltaTime;
-
-
-
-            //Debug.Log("In Air - Air Time: " + airTime + " - Speed Multiplier: " + airSpeedMultiplier);
-            yield return new WaitForSeconds(0.1f);
-
-            if (jumping) { Debug.Log("Checkin for wall"); CheckForWall(); }
-
-            if (jumping && (isWallRight || isWallLeft) && AboveGround())
+            if (!wallrunScript.isWallrunning) 
             {
-                // if (0<= wallrunTimeCounter) {
-
-                if (reduceCoroutine == null) { StartCoroutine(ReduceSpeedMultiplier()); }
-                StartWallrun();
-                continue;
-                //}
-
-            }
-
-            if (IsGrounded())
-            {
-                wasGrounded = true;
-                grounded = true;
-
-                StopWallrun();
-
-
-                break;
-
-            }
-
-            if ((isWallRight || isWallLeft))
-            {
-                airSpeedMultiplier = 1;
-                _rb.velocity = Vector3.zero;
-            }
-            else
-            {
+                airTime += Time.deltaTime;
                 airSpeedMultiplier = Mathf.Min(airSpeedMultiplier + airTime * airTimeIncrement, maxAirSpeedMultiplier);
             }
+            
 
+            yield return new WaitForSeconds(0.1f);
 
-            //_rb.AddForce(transform.forward* airSpeedMultiplier*_rb.velocity.magnitude, ForceMode.Acceleration);
-            _rb.velocity = new Vector3(maxVelVector.x, _rb.velocity.y, maxVelVector.z);
+            if (jumping) { 
+                Debug.Log("Checkin for wall");
+                wallrunScript.CheckForWall();
+                if (wallrunScript.isWallRight || wallrunScript.isWallLeft)
+                {
+                    
+
+                    if (reduceCoroutine == null && airSpeedMultiplier >= 0) { StartCoroutine(ReduceSpeedMultiplier()); }
+                    if (!wallrunScript.isWallrunning) 
+                    {
+                        
+                        wallrunScript.StartWallrun();
+                    } 
+
+                    
+
+                }
+
+            }
+            wasGrounded = false;
+
+            if (IsGrounded()) {
+                airTime = 0f;
+                wasGrounded = true;
+                inAir = false; }
+            
 
         }
 
-        if (tiltCoroutine == null) {
-
-            tiltCoroutine = StartCoroutine(TiltCamera(0f));
+        if (!wallrunScript.isWallrunning&&wallrunScript.tiltCoroutine == null)
+        {
+            Debug.Log("Landed or started wallride");
+            wallrunScript.tiltCoroutine = StartCoroutine(wallrunScript.TiltCamera(0f));
         }
-        Debug.Log("Landed");
+        
+        
         // After landing, slowly decrease the speed multiplier back to 1
         reduceCoroutine = StartCoroutine(ReduceSpeedMultiplier());
+        airTime = 0f;
+        
         airCoroutine = null;
         inAir = false;
-        //StopCoroutine( airCoroutine );
+        
+
         yield return null;
     }
 
     IEnumerator ReduceSpeedMultiplier()
     {
-        while (airSpeedMultiplier > 1f)
+        while (airSpeedMultiplier > 0)
         {
-            //airCoroutine = null;
+            
             airSpeedMultiplier -= speedDecreaseRate * Time.deltaTime;
-            airSpeedMultiplier = Mathf.Max(airSpeedMultiplier, 1f);
+            
             yield return null;
 
         }
-
+        reduceCoroutine = null;
     }
 
-    private bool IsGrounded()
+    public bool IsGrounded()
     {
-        // Perform a simple raycast to check if the player is grounded
-        return Physics.SphereCast(transform.position, playerCollider.radius, Vector3.down, out RaycastHit hitInfo, jumpRaycastLenght);
-    }
-
-    //WALLRUN
-    private void CheckForWall()
-    {
-
-
-        isWallRight = Physics.Raycast(transform.position, transform.right, out rightWallHit, wallCheckDistance, whatIsWall);
-        isWallLeft = Physics.Raycast(transform.position, -transform.right, out leftWallHit, wallCheckDistance, whatIsWall);
-
-
-        if (!isWallRight && !isWallLeft)
+        if (dragAndDrop.isDragging && Physics.SphereCast(transform.position, colliderRadius, Vector3.down, out RaycastHit hitWhileDragging, (playerCollider.height / 2) - colliderRadius + groundCheckDistance))
         {
-            StopWallrun();
-            return;
-        }
-
-
-
-    }
-
-    Coroutine tiltCoroutine;
-    private bool AboveGround()
-    {
-        return !Physics.Raycast(transform.position, Vector3.down, minJumpHeight);
-    }
-
-    private void StartWallrun()
-    {
-        if (!canWallJump) return;
-
-        isWallrunning = true;
-        // Start tilting the camera
-        if (tiltCoroutine != null)
-        {
-
-            StopCoroutine(tiltCoroutine);
-            tiltCoroutine = null;
-        }
-
-        if (isWallRight)
-        {
-            tiltCoroutine = StartCoroutine(TiltCamera(maxCameraTilt));
-        }
-        else if (isWallLeft)
-        {
-            tiltCoroutine = StartCoroutine(TiltCamera(-maxCameraTilt));
-        }
-    }
-    Vector3 wallNormal;
-    private void WallrunningMovement()
-    {
-        if (Gamepad.current != null)
-        {
-
-            Gamepad.current.SetMotorSpeeds(0, 0.2f);
-
-        }
-        _rb.useGravity = false;
-        _rb.velocity = new Vector3(_rb.velocity.x, -downForceAmount, _rb.velocity.z);
-
-        wallNormal = isWallRight ? rightWallHit.normal : leftWallHit.normal;
-
-        Vector3 wallForward = Vector3.Cross(wallNormal, transform.up);
-
-        if ((transform.forward - wallForward).magnitude > (transform.forward - -wallForward).magnitude)
-        {
-            wallForward = -wallForward;
-        }
-
-        _rb.AddForce(wallForward * wallrunForce, ForceMode.Force);
-        if (Physics.Raycast(transform.position, Vector3.down, stopWallrunBelow)) StopWallrun();
-
-    }
-    private void StopWallrun()
-    {
-        if (isWallrunning) {
-
-            if (Gamepad.current != null)
+            if (hitWhileDragging.transform.CompareTag("Draggable"))
             {
-
-                Gamepad.current.SetMotorSpeeds(0, 0);
-
-
+                airTime = 0f;
+                return false;
             }
-
-
-            //_rb.AddForce(transform.forward * _jumpForce * 1.5f, ForceMode.Impulse);
-
-            float temp = _rb.velocity.magnitude / 100;
-            if (isWallRight)
-            {
-                _rb.AddForce(-transform.right * _jumpForce * Mathf.Max(wallrunStopJumpBoostMultipler, temp), ForceMode.Impulse);
-            }
-            else if (isWallLeft)
-            {
-                _rb.AddForce(transform.right * _jumpForce * Mathf.Max(wallrunStopJumpBoostMultipler, temp), ForceMode.Impulse);
-            }
-
-            _rb.AddForce(transform.forward * _jumpForce * Mathf.Max(wallrunStopJumpBoostMultipler, temp), ForceMode.Impulse);
-            _rb.AddForce(transform.up * _jumpForce * Mathf.Max(wallrunStopJumpBoostMultipler, temp)/*Mathf.Min(_jumpForce / 10, _rb.velocity.magnitude / 100)*/, ForceMode.Impulse);
-            //_rb.AddForce(transform.up * _jumpForce, ForceMode.Impulse);
-
-            isWallrunning = false;
-            //_rb.AddForce(Vector3.up * _jumpForce);
-            //_rb.velocity = new Vector3(_rb.velocity.x, _rb.velocity.y /*Mathf.Min(_rb.velocity.y, _jumpForce*2)*/, _rb.velocity.z);
-            isWallRight = false;
-            isWallLeft = false;
-            _rb.useGravity = true;
-
-            if (tiltCoroutine != null) StopCoroutine(tiltCoroutine);
-            tiltCoroutine = StartCoroutine(TiltCamera(0f));
-
-
-
         }
+        
+            // Perform the SphereCast to check if the player is grounded
+            return Physics.SphereCast(transform.position, colliderRadius, Vector3.down, out RaycastHit hit, (playerCollider.height / 2) - colliderRadius + groundCheckDistance);
+        
 
-
-
-
-
-
-
-
+        // Perform the SphereCast to check if the player is grounded
+        //return Physics.SphereCast(transform.position, colliderRadius, Vector3.down, out RaycastHit hit, (playerCollider.height/2)-colliderRadius+ groundCheckDistance);
     }
-
-    private IEnumerator TiltCamera(float targetTilt)
-    {
-        while (Mathf.Abs(currentCameraTilt - targetTilt) > 0.01f)
-        {
-            currentCameraTilt = Mathf.Lerp(currentCameraTilt, targetTilt, Time.deltaTime * cameraTiltSpeed);
-            mainCamera.transform.localRotation = Quaternion.Euler(verticalRotation + recoilX, recoilY, currentCameraTilt);
-            yield return null;
-        }
-
-        currentCameraTilt = targetTilt;
-
-        mainCamera.transform.localRotation = Quaternion.Euler(verticalRotation + recoilX, recoilY, currentCameraTilt);
-        tiltCoroutine = null;
-        yield return null;
-    }
-
 
 
 
@@ -722,8 +601,8 @@ public class PlayerInputController : MonoBehaviour
             right.Normalize();
 
             Vector3 desiredMoveDirection = (forward * moveDir.y + right * moveDir.x).normalized;
-
-            speed = _moveSpeed * airSpeedMultiplier;
+            if (inAir) speed = _moveSpeed * airSpeedMultiplier;
+            speed = _moveSpeed ;
 
 
 
@@ -745,27 +624,14 @@ public class PlayerInputController : MonoBehaviour
 
             vel = new Vector3(desiredMoveDirection.x * speed, _rb.velocity.y, desiredMoveDirection.z * speed);
 
-            if (isWallrunning /*&& airCoroutine != null/*_rb.velocity.magnitude >= vel.magnitude*/)
-            {
-
-                Debug.Log("move1");
-                if ((moveDir.x > _lookTreshold && isWallRight) || moveDir.x < -_lookTreshold && isWallLeft)
-                {
-                    // _rb.AddForce(-wallNormal * 100, ForceMode.Force);
-                }
-
-
-
-
-            }
-            else if (!isWallrunning && airCoroutine != null /*&& (_rb.velocity.magnitude >= vel.magnitude)*/)
+            if (!wallrunScript.isWallrunning && airCoroutine != null /*&& (_rb.velocity.magnitude >= vel.magnitude)*/)
             {
                 Debug.Log("move2");
-                _rb.AddForce(new Vector3(vel.x, 0, vel.z), ForceMode.Force);
+                _rb.AddForce(new Vector3(vel.x/2, 0, vel.z/2), ForceMode.Force);
 
 
             }
-            else
+            else if(!wallrunScript.isWallrunning && airCoroutine == null)
             {
 
                 if (OnSlope())
@@ -791,7 +657,7 @@ public class PlayerInputController : MonoBehaviour
             //if (waitCoroutine == null) StartCoroutine(WaitFor(2f, w8));
 
 
-            if (!isWallrunning && airCoroutine == null /*&& w8*/ /*&& (_rb.velocity.magnitude >= vel.magnitude)*/)
+            if (!wallrunScript.isWallrunning && airCoroutine == null /*&& w8*/ /*&& (_rb.velocity.magnitude >= vel.magnitude)*/)
             {
                 _rb.velocity = new Vector3(0, _rb.velocity.y, 0);
             }
@@ -799,11 +665,9 @@ public class PlayerInputController : MonoBehaviour
         }
     }
 
+    float xRotation;
 
-
-    [HideInInspector] public Quaternion recoil;
-
-    [HideInInspector] public float recoilX, recoilY;
+    
     bool isMouse = true;
     private void HandleLook()
     {
@@ -827,27 +691,29 @@ public class PlayerInputController : MonoBehaviour
             float mouseX = lookDir.x * (isMouse ? _lookSensitivityHorizontal * 0.1f : _lookSensitivityHorizontal) * Time.deltaTime;
             float mouseY = lookDir.y * (isMouse ? _lookSensitivityVertical * 0.1f : _lookSensitivityVertical) * Time.deltaTime;
 
-            verticalRotation -= mouseY;
-            verticalRotation = Mathf.Clamp(verticalRotation, -rotationDeadAngle, rotationDeadAngle);
+            
 
             // Apply horizontal rotation to the player
             transform.Rotate(Vector3.up * mouseX);
 
+            xRotation -= mouseY;
+            xRotation = Mathf.Clamp(xRotation, -rotationDeadAngle, rotationDeadAngle);
 
-            mainCamera.transform.localRotation = Quaternion.Euler(Mathf.Clamp(verticalRotation + recoilX, -70f, 70f), recoilY, currentCameraTilt);
+            mainCamera.transform.localRotation = Quaternion.Euler(mainCamera.transform.localRotation.x + xRotation, 0, wallrunScript.currentCameraTilt);
+
 
 
         }
         else if (lookDir.magnitude <= _lookTreshold)
         {
-            mainCamera.transform.localRotation = Quaternion.Euler(verticalRotation + recoilX, recoilY, currentCameraTilt);
+            //mainCamera.transform.localRotation = Quaternion.Euler(verticalRotation , currentCameraTilt);
 
             //mainCamera.transform.localRotation = Quaternion.Euler(mainCamera.transform.localRotation.eulerAngles.x + recoilX, mainCamera.transform.localRotation.eulerAngles.y+ recoilY, mainCamera.transform.localRotation.eulerAngles.z);
             //mainCamera.transform.localRotation = recoil;
         }
 
     }
-
+    
 
 
     private void OnWalk(InputAction.CallbackContext context)
@@ -901,8 +767,8 @@ public class PlayerInputController : MonoBehaviour
         smoothShakeFrequency *= camWobbleCrouching;
         //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleCrouching;
 
-
-        playerModel.transform.localScale = new Vector3(playerModel.transform.localScale.x, crouchYscale, playerModel.transform.localScale.z);
+        startYscale = transform.localScale.y;
+        transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y*crouchYscale, transform.localScale.z);
         _rb.AddForce(Vector3.down * 5, ForceMode.Impulse);
 
 
@@ -926,18 +792,22 @@ public class PlayerInputController : MonoBehaviour
     }
     IEnumerator CheckUp()
     {
-        while (Physics.Raycast(playerModel.transform.position, playerModel.transform.up, transform.localScale.y * 2f))
+        while (Physics.Raycast(transform.position- new Vector3(0, transform.localScale.y, 0) , transform.up, out RaycastHit hit, transform.localScale.y + (startYscale * 2f)+0.1f, whatIsOnTop))
         {
+            Debug.Log("checkingup");
             canJump = false;
             yield return new WaitForSeconds(.5f);
+            yield return null;
         }
         canJump = true;
         isCrouching = false;
         smoothShakeFrequency /= camWobbleCrouching;
 
 
+        
         targetFOV = normalFOV;
-        playerModel.transform.localScale = new Vector3(playerModel.transform.localScale.x, startYscale, playerModel.transform.localScale.z);
+        transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
+        startYscale = 0;
         yield return null;
 
 
@@ -961,21 +831,18 @@ public class PlayerInputController : MonoBehaviour
         return Vector3.ProjectOnPlane(vel, slopeHit.normal).normalized;
     }
 
-    [HideInInspector] public bool isDragging = false;
+    
     private void OnObjectDrag(InputAction.CallbackContext context)
     {
-
-
-
-        if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hitt, dragAndDrop.dragDistance, dragAndDrop.draggableLayer)
-            && !isDragging && !dragAndDrop.isDragging)
-        {
-            isDragging = dragAndDrop.TryStartDrag(hitt);
-        } else if (isDragging)
+        if (dragAndDrop.isDragging)
         {
             dragAndDrop.StopDrag();
 
-        }
+        } else if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hitt, dragAndDrop.dragDistance, dragAndDrop.draggableLayer)
+            && !dragAndDrop.isDragging)
+        {
+            dragAndDrop.TryStartDrag();
+        } 
     }
     private void OnObjectDragCancel(InputAction.CallbackContext context)
     {
@@ -991,8 +858,9 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnLeftClick(InputAction.CallbackContext context)
     {
+        //if (pauseMenuScript.GamePaused) { return; }
         isLeftClick = true;
-        if (isDragging&& dragAndDrop.draggedObject != null) {
+        if (dragAndDrop.isDragging ) {
 
             if (rotateCoroutine == null) 
             {
@@ -1005,13 +873,7 @@ public class PlayerInputController : MonoBehaviour
         
         
         GameObject effectedObject=null;
-        if (chooseBox.lookingAt != null)
-        {
-
-            effectedObject = chooseBox.lookingAt;
-        }
-        else
-        {
+        
             if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
             {
                 if (hit.transform.tag == "Box"||(hit.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("YellowBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("GreenBox")))
@@ -1027,12 +889,12 @@ public class PlayerInputController : MonoBehaviour
                 }
                 else
                 {
-
+                    effectedObject=null;
                     return;
                 }
 
             }
-        }
+        
 
         
         if (effectedObject != null) 
@@ -1059,28 +921,19 @@ public class PlayerInputController : MonoBehaviour
     
     IEnumerator RotateObject ()
     {
-        float temp = dragAndDrop.rotationBreakMultiplier;
-        while (isLeftClick) {
+        
+        while (isLeftClick&&dragAndDrop.isDragging) {
+            //Debug.Log("OBJE DONMELIII!!!");
             rotation = _lookAction.ReadValue<Vector2>();
             rotation *= rotateSpeed;
             
                 dragAndDrop.draggedObject.transform.Rotate(Vector3.up, rotation.x, Space.World);
                 dragAndDrop.draggedObject.transform.Rotate(Vector3.right, rotation.y, Space.World);
-            
-           
-            //dragAndDrop.rb.velocity = Vector3.zero;
-            //dragAndDrop.rb.angularDrag = 5f;
-            dragAndDrop.rotationBreakMultiplier = temp* 0.75f;
-
-            //dragAndDrop.rb.constraints = RigidbodyConstraints.None;
+         
             yield return null;
 
         }
-        if (dragAndDrop.rb != null) 
-        {
-            dragAndDrop.rb.angularDrag = 0.05f;
-        }
-        dragAndDrop.rotationBreakMultiplier = temp;
+       
 
         rotateCoroutine = null;
     }
@@ -1088,8 +941,9 @@ public class PlayerInputController : MonoBehaviour
     Coroutine rotateCoroutine;
     private void OnLeftClickCancel(InputAction.CallbackContext context)
     {
+        //if (pauseMenuScript.GamePaused) { return; }
         isLeftClick = false;
-        if (isDragging )
+        if (dragAndDrop.isDragging )
         {
             
 
@@ -1111,19 +965,14 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnRightClick(InputAction.CallbackContext context)
     {
-        if (isDragging) return;
+        //if (pauseMenuScript.GamePaused) { return; }
+        if (dragAndDrop.isDragging) return;
         isRightClick = true;
         GameObject effectedObject = null;
-        if (chooseBox.lookingAt != null)
-        {
-
-            effectedObject = chooseBox.lookingAt;
-        }
-        else
-        {
-            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
+        
+            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, dragAndDrop.dragDistance, dragAndDrop.draggableLayer))
             {
-                if (hit.transform.tag == "Box"||(hit.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("YellowBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("GreenBox")))
+                if (hit.transform.CompareTag("Draggable"))
                 {
                     if (hit.transform.TryGetComponent<Animator>(out Animator anim))
                     {
@@ -1136,12 +985,12 @@ public class PlayerInputController : MonoBehaviour
                 }
                 else
                 {
-
+                effectedObject = null;
                     return;
                 }
 
             }
-        }
+        
         if (effectedObject != null)
         {
             if (effectedObject.TryGetComponent<ScalableCube>(out ScalableCube scalableCube))
@@ -1165,7 +1014,8 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnRightClickCancel(InputAction.CallbackContext context)
     {
-        if (isDragging) return;
+        //if (pauseMenuScript.GamePaused) { return; }
+        if (dragAndDrop.isDragging) return;
         isRightClick = false;
         if (weightCoroutine != null)
         {
@@ -1241,7 +1091,7 @@ public class PlayerInputController : MonoBehaviour
     [HideInInspector]public bool onSlope;
     private void Update()
     {// Manage coyote time
-        
+        //Debug.Log("Isgrounded:" + IsGrounded());
 
         mainCamera.m_Lens.FieldOfView = Mathf.Lerp(mainCamera.m_Lens.FieldOfView, targetFOV, fovTransitionSpeed * Time.deltaTime);
         //mainCamera.m_Lens.FieldOfView = Mathf.Lerp(mainCamera.m_Lens.FieldOfView, targetFOV, fovTransitionSpeed * Time.deltaTime);
@@ -1263,24 +1113,21 @@ public class PlayerInputController : MonoBehaviour
             jumpRaycastLenght = 1.02f * transform.localScale.y;
         }
 
-        if (IsGrounded())
+        if (IsGrounded()&&!wallrunScript.isWallrunning)
         {
             
 
             coyoteTimeCounter = coyoteTime;
-            wasGrounded = true;
-            StopWallrun();
+            //wasGrounded = true;
+            //wallrunScript.StopWallrun();
         }
         else
         {
             coyoteTimeCounter -= Time.deltaTime;
         }
 
-        //prevMaxY = transform.position.y;
-        //if (prevMaxY >= maxY) {
-        //    maxY = prevMaxY;
-        //    Debug.Log(maxY); }
-
+        
+        interactor.TextUpdate(dragAndDrop.isDragging);
 
         HandleMovement();
         maxVelVector = Vector3.ClampMagnitude(_rb.velocity, maxVelocity);
@@ -1296,14 +1143,36 @@ public class PlayerInputController : MonoBehaviour
 
 
         HandleLook();
-        if (isWallrunning)
+        if (wallrunScript.isWallrunning)
         {
-            WallrunningMovement();
+            wallrunScript.WallrunningMovement();
         }
 
     }
 
     
-    
+    //void OnDrawGizmos()
+    //{
+    //    if (showJumpGizmos)
+    //    {
+    //        // Set Gizmo color
+    //        Gizmos.color = Color.red;
+
+    //        // Draw the initial sphere at the start of the SphereCast
+    //        Gizmos.DrawWireSphere(transform.position, colliderRadius);
+
+    //        // Draw a line from the start position downward
+    //        Gizmos.DrawLine(spherePosition, spherePosition + Vector3.down * groundCheckDistance);
+
+    //        // Draw the end sphere at the bottom of the SphereCast
+    //        Gizmos.DrawWireSphere(transform.position + Vector3.down * groundCheckDistance, colliderRadius);
+
+    //        // Reset the flag after drawing the gizmo
+    //        showJumpGizmos = false;
+    //    }
+    //}
+
+
+
 
 }

@@ -32,11 +32,13 @@ public class DragAndDrop : MonoBehaviour
     public GameObject draggedObject;
     public bool TryStartDrag(RaycastHit hita)
     {
+        //if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hitt, dragAndDrop.dragDistance, dragAndDrop.draggableLayer)) { }
         hitt = hita;
        
 
         if ((hitt.transform.tag == "Box"|| hitt.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox"))|| hitt.transform.gameObject.layer == LayerMask.NameToLayer("GreenBox")|| hitt.transform.gameObject.layer == LayerMask.NameToLayer("YellowBox"))
         {
+
 
             if (hitt.transform.gameObject.TryGetComponent<Rigidbody>(out rb)) 
             {
@@ -163,7 +165,7 @@ public class DragAndDrop : MonoBehaviour
             rb.angularDrag = 0.05f;
             rb = null;
                 isDragging = false;
-                playerInputController.isDragging=false;
+                //playerInputController.isDragging=false;
             draggedObject=null;
             
             }

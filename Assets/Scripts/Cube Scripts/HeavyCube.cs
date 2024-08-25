@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class HeavyCube : BaseCube
+public class HeavyCube : BaseCube, IInteractable
 {
     public float weightIncrease = 5f;
     public float weightDecrease = -5f;
@@ -12,6 +12,8 @@ public class HeavyCube : BaseCube
 
 
     List<TextMeshPro> texts = new List<TextMeshPro>();
+
+    public string InteractionPrompt => throw new System.NotImplementedException();
 
     private void Start()
     {
@@ -54,4 +56,8 @@ public class HeavyCube : BaseCube
         }
     }
 
+    public bool Interact(Interaction interaction)
+    {
+        throw new System.NotImplementedException();
+    }
 }

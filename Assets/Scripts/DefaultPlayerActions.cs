@@ -436,6 +436,17 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""0d41c34c-1435-4008-b00a-c1d3310f7f26"",
+                    ""path"": ""<Gamepad>/rightStickPress"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Drag"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""e3a47254-2050-4476-84c4-1ccd73cc8315"",
                     ""path"": ""<Gamepad>/leftTrigger"",
                     ""interactions"": """",

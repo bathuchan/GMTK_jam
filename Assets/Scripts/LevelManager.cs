@@ -1,7 +1,6 @@
 using UnityEngine.SceneManagement;
 using UnityEngine;
-using System.Collections.Generic;
-using EasyTransition;
+
 
 public class LevelManager : MonoBehaviour
 {

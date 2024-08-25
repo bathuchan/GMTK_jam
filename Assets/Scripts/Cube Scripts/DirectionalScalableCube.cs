@@ -3,10 +3,10 @@ using System.Collections;
 using UnityEngine.UIElements;
 
 
-public class DirectionalScalableCube : BaseCube
+public class DirectionalScalableCube : BaseCube, IInteractable
 {
     public float scaleMultiplier = 1.2f; // Büyüme çarpaný
-    public float scaleSpeed = 1.0f; // Büyüme hýzý
+    public float scaleDuration = 1.0f; // Büyüme hýzý
  
     public int growthCountX = 2, growthCountY = 2, growthCountZ = 2;
     [SerializeField]bool scaleWithGrowthCounts;
@@ -17,6 +17,9 @@ public class DirectionalScalableCube : BaseCube
     //private bool isScaling = false; // Coroutine'in birden fazla kez baþlamasýný engellemek için
 
     Coroutine scaleCoroutine=null;
+
+    public string InteractionPrompt => throw new System.NotImplementedException();
+
     private void Start()
     {
         if (scaleWithGrowthCounts) 
@@ -63,7 +66,7 @@ public class DirectionalScalableCube : BaseCube
             if (scaleCoroutine==null) // Coroutine'in tekrar baþlamasýný önle
             {
                 
-                scaleCoroutine= StartCoroutine(ScaleOverTime(transform.localScale, scaleMultiplier, scaleSpeed, true));
+                scaleCoroutine= StartCoroutine(ScaleOverTime(transform.localScale, scaleMultiplier, scaleDuration, true));
                 growthCount++;
                 switch (selectedAxis)
                 {
@@ -117,7 +120,7 @@ public class DirectionalScalableCube : BaseCube
             if (scaleCoroutine == null)  // Coroutine'in tekrar baþlamasýný önle
             {
 
-                scaleCoroutine = StartCoroutine(ScaleOverTime(transform.localScale, scaleMultiplier, scaleSpeed,false));
+                scaleCoroutine = StartCoroutine(ScaleOverTime(transform.localScale, scaleMultiplier, scaleDuration, false));
                 growthCount--;
                 switch (selectedAxis)
                 {
@@ -237,5 +240,10 @@ public class DirectionalScalableCube : BaseCube
         //isScaling = false;
         scaleCoroutine = null;
         yield return null;
+    }
+
+    public bool Interact(Interaction interaction)
+    {
+        throw new System.NotImplementedException();
     }
 }

@@ -189,7 +189,7 @@ GameObject:
   - component: {fileID: 9079417488875286091}
   m_Layer: 11
   m_Name: BlueBox
-  m_TagString: Box
+  m_TagString: Draggable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -204,7 +204,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.3204556, y: 1.0000002, z: 3.029}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7973094711170764563}
@@ -348,11 +348,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseScale: 1
   scaleMultiplier: 1.2
-  scaleSpeed: 1
+  scaleDuration: 0.5
   growthCountX: 2
   growthCountY: 2
   growthCountZ: 2
-  scaleWithGrowCounts: 0
+  scaleWithGrowthCounts: 0
   growthCountMaxX: 7
   growthCountMaxY: 7
   growthCountMaxZ: 7
