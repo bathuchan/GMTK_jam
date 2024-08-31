@@ -19,19 +19,22 @@ public class DoorsScript : MonoBehaviour
 
     private void Update()
     {
-        conditionsMet = true;
-        for(int i=0; i < conditions.Count; i++)
-        {
-            if (conditions[i].TryGetComponent<GeneralPlateScript>(out GeneralPlateScript generalPlateScript))
+        if (conditions != null) {
+            conditionsMet = true;
+            for (int i = 0; i < conditions.Count; i++)
             {
-                conditionsBool[i] = generalPlateScript.match;
-                if (!conditionsBool[i])
+                if (conditions[i].TryGetComponent<GeneralPlateScript>(out GeneralPlateScript generalPlateScript))
                 {
-                    conditionsMet = false;
-                    break;
+                    conditionsBool[i] = generalPlateScript.match;
+                    if (!conditionsBool[i])
+                    {
+                        conditionsMet = false;
+                        break;
+                    }
                 }
             }
         }
+        
 
         if (!doorIsOpen && conditionsMet)
         {

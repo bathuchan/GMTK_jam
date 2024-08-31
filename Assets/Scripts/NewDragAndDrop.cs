@@ -3,6 +3,7 @@ using Cinemachine;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class NewDragAndDrop : MonoBehaviour
 {
@@ -28,14 +29,13 @@ public class NewDragAndDrop : MonoBehaviour
         mainCamera = GetComponentInChildren<CinemachineVirtualCamera>();
         //playerRb= GetComponent<Rigidbody>();
     }
-    public void TryStartDrag()
+    public bool TryStartDrag(RaycastHit hitt)
     {
-        if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, dragDistance, draggableLayer))
-        {
-            if (hit.transform.gameObject != null && hit.transform.CompareTag("Draggable")&& hit.transform.TryGetComponent<Rigidbody>(out draggedObjectRb)) 
+        
+            if (hitt.transform.gameObject != null && hitt.transform.CompareTag("Draggable")&& hitt.transform.TryGetComponent<Rigidbody>(out draggedObjectRb)) 
             {
-                draggedObject = hit.transform.gameObject;
-                joint=hit.transform.gameObject.AddComponent<SpringJoint>();
+                draggedObject = hitt.transform.gameObject;
+                joint= hitt.transform.gameObject.AddComponent<SpringJoint>();
                 if(joint != null&& draggedHolder.TryGetComponent<Rigidbody>(out playerRb))
                 {
                     draggedObjMass=draggedObjectRb.mass;
@@ -53,12 +53,14 @@ public class NewDragAndDrop : MonoBehaviour
                     joint.maxDistance = 0.05f;
                     joint.breakForce = 200f;
                     isDragging = true;
-                    return;
+
+                
+                    return true;
                 }
             }
             
             
-        }
+        
         if (isDragging == true)
         {
 
@@ -69,7 +71,7 @@ public class NewDragAndDrop : MonoBehaviour
             isDragging = false;
         }
         
-
+        return false;
 
     }
 

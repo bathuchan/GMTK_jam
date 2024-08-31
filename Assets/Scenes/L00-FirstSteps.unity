@@ -4362,6 +4362,7 @@ GameObject:
   m_Component:
   - component: {fileID: 137633091}
   - component: {fileID: 137633090}
+  - component: {fileID: 137633092}
   m_Layer: 0
   m_Name: manager
   m_TagString: Untagged
@@ -4397,6 +4398,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 61.426, y: 64.332, z: 39.089}
+--- !u!114 &137633092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137633089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42b88be98010537459ffa09012879d80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GamePaused: 0
+  pauseMenuUI: {fileID: 0}
+  settingsMenuUI: {fileID: 0}
+  headsUpDisplay: {fileID: 0}
 --- !u!1001 &141737588
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11324,6 +11341,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 7633523541354496123, guid: 188e9b30638aae64986061deb648741c,
+        type: 3}
+      propertyPath: m_UiScaleMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7633523541354496123, guid: 188e9b30638aae64986061deb648741c,
+        type: 3}
+      propertyPath: m_ReferenceResolution.x
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 7633523541354496123, guid: 188e9b30638aae64986061deb648741c,
+        type: 3}
+      propertyPath: m_ReferenceResolution.y
+      value: 1080
+      objectReference: {fileID: 0}
     - target: {fileID: 8062776447472638724, guid: 188e9b30638aae64986061deb648741c,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -11332,7 +11364,7 @@ PrefabInstance:
     - target: {fileID: 8062776447472638724, guid: 188e9b30638aae64986061deb648741c,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.75
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 8062776447472638724, guid: 188e9b30638aae64986061deb648741c,
         type: 3}

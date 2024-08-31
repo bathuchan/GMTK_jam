@@ -127,7 +127,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Pause"",
+                    ""name"": ""MenuOpenClose"",
                     ""type"": ""Button"",
                     ""id"": ""f9acbba7-70cc-41e9-b4e1-971a835694c6"",
                     ""expectedControlType"": ""Button"",
@@ -480,11 +480,55 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""411d1e39-cfac-4b78-8e7f-9a3800f15a8f"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""AxisUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""29719755-4759-4c9e-8df6-f0e163d93981"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""AxisUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""6e54440b-7be7-4c4c-a221-21621a66b61d"",
                     ""path"": ""<Mouse>/scroll/down"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""AxisDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5dbc4605-ec41-4087-9f05-a27694990a1a"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""AxisDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d051dcc6-248d-41f3-8fd1-8b2c79b01923"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
                     ""action"": ""AxisDown"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -518,7 +562,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
-                    ""action"": ""Pause"",
+                    ""action"": ""MenuOpenClose"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -529,7 +573,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
-                    ""action"": ""Pause"",
+                    ""action"": ""MenuOpenClose"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1075,7 +1119,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
             ""devices"": [
                 {
                     ""devicePath"": ""<Gamepad>"",
-                    ""isOptional"": false,
+                    ""isOptional"": true,
                     ""isOR"": false
                 }
             ]
@@ -1128,7 +1172,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
         m_Player_AxisUp = m_Player.FindAction("AxisUp", throwIfNotFound: true);
         m_Player_AxisDown = m_Player.FindAction("AxisDown", throwIfNotFound: true);
         m_Player_AxisChange = m_Player.FindAction("AxisChange", throwIfNotFound: true);
-        m_Player_Pause = m_Player.FindAction("Pause", throwIfNotFound: true);
+        m_Player_MenuOpenClose = m_Player.FindAction("MenuOpenClose", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1213,7 +1257,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_AxisUp;
     private readonly InputAction m_Player_AxisDown;
     private readonly InputAction m_Player_AxisChange;
-    private readonly InputAction m_Player_Pause;
+    private readonly InputAction m_Player_MenuOpenClose;
     public struct PlayerActions
     {
         private @DefaultPlayerActions m_Wrapper;
@@ -1229,7 +1273,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
         public InputAction @AxisUp => m_Wrapper.m_Player_AxisUp;
         public InputAction @AxisDown => m_Wrapper.m_Player_AxisDown;
         public InputAction @AxisChange => m_Wrapper.m_Player_AxisChange;
-        public InputAction @Pause => m_Wrapper.m_Player_Pause;
+        public InputAction @MenuOpenClose => m_Wrapper.m_Player_MenuOpenClose;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1272,9 +1316,9 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
             @AxisChange.started += instance.OnAxisChange;
             @AxisChange.performed += instance.OnAxisChange;
             @AxisChange.canceled += instance.OnAxisChange;
-            @Pause.started += instance.OnPause;
-            @Pause.performed += instance.OnPause;
-            @Pause.canceled += instance.OnPause;
+            @MenuOpenClose.started += instance.OnMenuOpenClose;
+            @MenuOpenClose.performed += instance.OnMenuOpenClose;
+            @MenuOpenClose.canceled += instance.OnMenuOpenClose;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1312,9 +1356,9 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
             @AxisChange.started -= instance.OnAxisChange;
             @AxisChange.performed -= instance.OnAxisChange;
             @AxisChange.canceled -= instance.OnAxisChange;
-            @Pause.started -= instance.OnPause;
-            @Pause.performed -= instance.OnPause;
-            @Pause.canceled -= instance.OnPause;
+            @MenuOpenClose.started -= instance.OnMenuOpenClose;
+            @MenuOpenClose.performed -= instance.OnMenuOpenClose;
+            @MenuOpenClose.canceled -= instance.OnMenuOpenClose;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1508,7 +1552,7 @@ public partial class @DefaultPlayerActions: IInputActionCollection2, IDisposable
         void OnAxisUp(InputAction.CallbackContext context);
         void OnAxisDown(InputAction.CallbackContext context);
         void OnAxisChange(InputAction.CallbackContext context);
-        void OnPause(InputAction.CallbackContext context);
+        void OnMenuOpenClose(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

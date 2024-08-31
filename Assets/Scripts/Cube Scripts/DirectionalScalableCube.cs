@@ -175,6 +175,54 @@ public class DirectionalScalableCube : BaseCube, IInteractable
         }
         return axis;
     }
+
+    public int GetCurrentGrowth()
+    {
+        switch (selectedAxis)
+        {
+            case 0:
+                return growthCountX;
+            case 1:
+                return growthCountY;
+            case 2:
+                return growthCountZ;
+
+            default:
+                return 0;
+        }
+    }
+
+    public int GetMaxGrowth() 
+    {
+        switch (selectedAxis)
+        {
+            case 0:
+                return growthCountMaxX;
+            case 1:
+                return growthCountMaxY;
+            case 2:
+                return growthCountMaxZ;
+
+            default:
+                return 0;
+        }
+    }
+
+    public int GetMinGrowth() 
+    {
+        switch (selectedAxis) 
+        {
+            case 0:
+                return growthCountMinX;
+            case 1:
+                return growthCountMinY;
+            case 2:
+                return growthCountMinZ;
+
+            default:
+                return 0;
+        }
+    }
     public Color ChangeTextColor()
     {
         Color color = Color.white;

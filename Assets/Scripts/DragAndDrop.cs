@@ -23,7 +23,7 @@ public class DragAndDrop : MonoBehaviour
         cam = Camera.main;
         playerInputController = GameObject.FindAnyObjectByType<PlayerInputController>();
         
-        playerCollider = playerInputController.playerCollider;
+        //playerCollider = playerInputController.playerCollider;
         chooseBox=GetComponent<ChooseBox>();
 
     }

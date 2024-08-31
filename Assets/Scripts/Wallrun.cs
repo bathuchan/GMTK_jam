@@ -140,17 +140,6 @@ public class Wallrun : MonoBehaviour
 
     }
 
-    //public void CalculateMaxJumpHeight(float jumpForce)
-    //{
-    //    float yStart = transform.position.y;
-    //    // Using the equation: s = -(u^2) / (2a)
-    //    minJumpHeight=((-((Mathf.Pow(jumpForce, 2)) / (2 * Physics.gravity.y))) - yStart) * 0.25f;
-    //}
-
-    //public bool StopWallrunBelow()
-    //{
-    //    return !Physics.Raycast(transform.position, Vector3.down, minJumpHeight);
-    //}
 
     public IEnumerator TiltCamera(float targetTilt)
     {
@@ -173,14 +162,18 @@ public class Wallrun : MonoBehaviour
     {
         if (isWallrunning)
         {
-
             if (Gamepad.current != null)
             {
-
-                Gamepad.current.SetMotorSpeeds(0, 0);
-
-
+                StartCoroutine(VibrateController(.5f, 0, .2f));
             }
+
+            //if (Gamepad.current != null)
+            //{
+
+            //    Gamepad.current.SetMotorSpeeds(0, 0);
+
+
+            //}
 
 
             
@@ -213,7 +206,16 @@ public class Wallrun : MonoBehaviour
         }
     }
 
-
+    public IEnumerator VibrateController(float intensityL, float intensityR, float time)
+    {
+        if (Gamepad.current != null)
+        {
+            Gamepad.current.SetMotorSpeeds(intensityL, intensityR);
+            yield return new WaitForSeconds(time); // Adjust duration as needed
+            Gamepad.current.SetMotorSpeeds(0, 0);
+        }
+        yield return null;
+    }
     public  IEnumerator WallJumpCooldown()
     {
         canWallRide = false;

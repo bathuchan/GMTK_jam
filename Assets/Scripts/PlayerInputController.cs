@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Cinemachine;
 using SmoothShakeFree;
+using System;
+using UnityEditor;
 
 
 [RequireComponent(typeof(Rigidbody))]
@@ -13,7 +15,7 @@ public class PlayerInputController : MonoBehaviour
 
     private InputAction _moveAction, _lookAction, _jumpAction
         , _runAction, _crouchAction, _dragAction, _leftClickAction, _rightClickAction, 
-        _scaleScrollUpAction, _scaleScrollDownAction, _scaleScrollButtonAction,_escapeButtonAction;
+        _scaleScrollUpAction, _scaleScrollDownAction, _scaleScrollButtonAction;
 
     //private InputAction _shootAction;
 
@@ -38,8 +40,9 @@ public class PlayerInputController : MonoBehaviour
     public float groundCheckDistance = 0.1f; // Distance from the collider to check for the ground
     //public LayerMask groundLayer; // Layer to detect as ground
 
-    public float _jumpForce = 5f; // Jump force
-    public float _jumpForceOnSlope = 2.5f;
+    public float _jumpForce = 9f; // Jump force
+    public float _jumpForceOnSlope = 6f;
+    public float _jumpForceOnCrouch = 4f;
     public float jumpRaycastLenght = 1.02f;
     private CapsuleCollider capsuleCollider;
     private float colliderRadius;
@@ -48,19 +51,7 @@ public class PlayerInputController : MonoBehaviour
 
     [Header("Wallrun Settings")]
     public Wallrun wallrunScript;
-    //public LayerMask whatIsWall;
-    //public float wallCheckDistance = 1f, wallrunForce, maxWallrunSpeed, minJumpHeight = 2.2f;
-    //RaycastHit rightWallHit, leftWallHit;
-    //bool isWallRight, isWallLeft;
-    //[HideInInspector] public bool isWallrunning;
-    //public float cameraTiltSpeed = 5f; // Speed of the camera tilt
-    //public float maxCameraTilt = 15f; // Maximum tilt angle
-    //private float currentCameraTilt = 0f; // Current tilt angle
-    //public float wallJumpCooldown = 0.5f; // Cooldown time after a wall jump
-    //public float stopWallrunBelow = 1.05f;
-    //public float wallrunStopJumpBoostMultipler = 1f;
-    //public float downForceAmount = 0.2f;
-    //private bool canWallJump = true;
+   
 
 
     [Header("Crouch Settings")]
@@ -84,14 +75,16 @@ public class PlayerInputController : MonoBehaviour
     public float rotationDeadAngle = 75f;
 
 
-    [HideInInspector] public CapsuleCollider playerCollider = null;
+    //[HideInInspector] public CapsuleCollider playerCollider = null;
     
 
 
 
     [Header("Cam Wobble Settings")]
     public bool camWobbleOn = true;
+    [ConditionalField("camWobbleOn")]
     public float camWobbleNormal, camWobbleWalking, camWobbleRunning, camWobbleCrouching;
+    [ConditionalField("camWobbleOn")]
     public float camWobbleChangeSpeed = 1f;
 
 
@@ -118,16 +111,60 @@ public class PlayerInputController : MonoBehaviour
     public float rotateSpeed = 1f;
     private Vector2 rotation;
 
+    private TextManager textManager;
 
     RaycastHit hit;
     [HideInInspector] public Vector2 cumulativeMouseDelta;
     private NewDragAndDrop dragAndDrop;
-    private ChooseBox chooseBox;
+    
     float _jumpForceAtStart;
     Interactor interactor;
 
-    [Header("Pause Menu Script")]
-    public PauseMenuScript pauseMenuScript;
+    //[Header("Pause Menu Script")]
+    //public PauseMenuScript pauseMenuScript;
+
+    public class ConditionalFieldAttribute : PropertyAttribute
+    {
+        public string ConditionFieldName;
+
+        public ConditionalFieldAttribute(string conditionFieldName)
+        {
+            ConditionFieldName = conditionFieldName;
+        }
+    }
+
+#if UNITY_EDITOR
+    [CustomPropertyDrawer(typeof(ConditionalFieldAttribute))]
+    public class ConditionalFieldDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            ConditionalFieldAttribute conditional = (ConditionalFieldAttribute)attribute;
+            SerializedProperty conditionProperty = property.serializedObject.FindProperty(conditional.ConditionFieldName);
+
+            if (conditionProperty != null && conditionProperty.boolValue)
+            {
+                EditorGUI.PropertyField(position, property, label, true);
+            }
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            ConditionalFieldAttribute conditional = (ConditionalFieldAttribute)attribute;
+            SerializedProperty conditionProperty = property.serializedObject.FindProperty(conditional.ConditionFieldName);
+
+            if (conditionProperty != null && conditionProperty.boolValue)
+            {
+                return EditorGUI.GetPropertyHeight(property, label, true);
+            }
+            else
+            {
+                return -EditorGUIUtility.standardVerticalSpacing;
+            }
+        }
+    }
+#endif
+
     private void Awake()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -140,11 +177,13 @@ public class PlayerInputController : MonoBehaviour
         smoothShake = GetComponentInChildren<SmoothShake>();
         wallrunScript = GetComponent<Wallrun>();
         dragAndDrop = GetComponent<NewDragAndDrop>();
-        chooseBox = GetComponent<ChooseBox>();
+        
         _jumpForceAtStart = _jumpForce;
 
+        _lookSensitivityVertical= PlayerPrefs.GetFloat("verticalSens");
+        _lookSensitivityHorizontal = PlayerPrefs.GetFloat("horizontalSens");
 
-
+        textManager = GameObject.FindAnyObjectByType<TextManager>();
 
 
     }
@@ -159,9 +198,9 @@ public class PlayerInputController : MonoBehaviour
         // Calculate the collider's radius
         colliderRadius = capsuleCollider.radius * 0.8f; // Slightly reduce to avoid edge cases
 
-        smoothShake.enabled = camWobbleOn;
+        
         smoothShakeFrequency = smoothShake.positionShake.frequency;
-        playerCollider = gameObject.GetComponentInChildren<CapsuleCollider>();
+        //playerCollider = gameObject.GetComponentInChildren<CapsuleCollider>();
         
         startYscale = transform.localScale.y;
         xRotation=mainCamera.transform.localEulerAngles.x;
@@ -194,8 +233,7 @@ public class PlayerInputController : MonoBehaviour
         _scaleScrollDownAction = _defaultPlayerActions.Player.AxisDown;
         _scaleScrollDownAction.Enable();
 
-        _escapeButtonAction = _defaultPlayerActions.Player.Pause;
-        _escapeButtonAction.Enable();
+        
         //_shootAction = _defaultPlayerActions.Player.Fire;
         //_shootAction.Enable();
 
@@ -216,11 +254,11 @@ public class PlayerInputController : MonoBehaviour
 
         _scaleScrollButtonAction.performed += OnScaleButton;
         _scaleScrollUpAction.performed += OnScaleUp;
+        _scaleScrollUpAction.canceled += OnScaleUpCancel;
         _scaleScrollDownAction.performed += OnScaleDown;
+        _scaleScrollDownAction.canceled += OnScaleDownCancel;
 
-        _escapeButtonAction.performed += OnPauseButton;
-        //_shootAction.performed += OnShoot;
-        //_shootAction.canceled += OnShootCancel;
+        
         InputSystem.onDeviceChange += OnDeviceChange; // Subscribe to device change events
 
 
@@ -238,7 +276,7 @@ public class PlayerInputController : MonoBehaviour
         _scaleScrollButtonAction.Disable();
         _scaleScrollUpAction.Disable();
         _scaleScrollDownAction.Disable();
-        _escapeButtonAction.Disable();
+        
 
         _moveAction.performed -= OnWalk;
         _moveAction.canceled -= OnWalkCancel;
@@ -260,109 +298,67 @@ public class PlayerInputController : MonoBehaviour
 
         _scaleScrollButtonAction.performed -= OnScaleButton;
         _scaleScrollUpAction.performed -= OnScaleUp;
+        _scaleScrollUpAction.canceled -= OnScaleUpCancel;
         _scaleScrollDownAction.performed -= OnScaleDown;
+        _scaleScrollDownAction.canceled -= OnScaleDownCancel;
 
-        _escapeButtonAction.performed -= OnPauseButton;
+
 
         InputSystem.onDeviceChange -= OnDeviceChange; // Unsubscribe from device change events
     }
     DirectionalScalableCube dsc;
     private void OnScaleButton(InputAction.CallbackContext context)
     {
-        //if (pauseMenuScript.GamePaused) { return; }
-        
         if (interactor._colliders[0] != null && interactor._colliders[0].TryGetComponent<DirectionalScalableCube>(out dsc))
         {
             dsc.ChangeAxis(true);
-            //chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-            //chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
             dsc = null;
         }
-        //else {
-        //    if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
-        //    {
-        //        if (hit.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox") && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
-        //        {
-        //            if (hit.transform.TryGetComponent<Animator>(out Animator anim))
-        //            {
-        //                anim.SetTrigger("LookingAt");
-        //                dsc.ChangeAxis(true);
-        //                chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-        //                chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
-        //                chooseBox.lookingAt = hit.transform.gameObject;
-        //                dsc = null;
-        //            }
-
-        //        }
-
-
-        //    }
-
-        //}
+        
     }
     private void OnPauseButton(InputAction.CallbackContext context)
     {
-        //if (pauseMenuScript.GamePaused)
-        //{
-        //    pauseMenuScript.Resume();
-        //}
-        //else
-        //{
-        //    pauseMenuScript.Pause();
-        //}
+       
     }
 
+    bool onScaleUp, onScaleDown;
+    Coroutine positonCoroutine;
     private void OnScaleUp(InputAction.CallbackContext context)
     {
+        onScaleUp=true;
         if (dragAndDrop.isDragging) 
         {
-            dragAndDrop.draggedHolder.transform.localPosition = new Vector3(dragAndDrop.draggedHolder.transform.localPosition.x
-                , dragAndDrop.draggedHolder.transform.localPosition.y, Mathf.Clamp(dragAndDrop.draggedHolder.transform.localPosition.z +  0.1f, 2f, 4.5f));
-            
+
+            if(positonCoroutine==null) positonCoroutine = StartCoroutine(ChangePositionZ());
+
 
             return;
         }
-        //if (pauseMenuScript.GamePaused) { return; }
+        
         
         if (interactor._colliders[0] != null && interactor._colliders[0].TryGetComponent<DirectionalScalableCube>(out dsc))
         {
             dsc.ChangeAxis(true);
-            //chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-            //chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
             dsc = null;
         }
-        //else
-        //{
-        //    if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
-        //    {
-        //        if (hit.transform.gameObject.layer==LayerMask.NameToLayer("BlueBox")  && objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
-        //        {
-        //            if (hit.transform.TryGetComponent<Animator>(out Animator anim))
-        //            {
-        //                anim.SetTrigger("LookingAt");
-        //                dsc.ChangeAxis(true);
-        //                chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-        //                chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
-        //                chooseBox.lookingAt = hit.transform.gameObject;
-        //                dsc = null;
-        //            }
+       
 
-        //        }
+    }
+    private void OnScaleUpCancel(InputAction.CallbackContext context)
+    {
+        onScaleUp = false;
 
-
-        //    }
-
-        //}
 
     }
 
+
     private void OnScaleDown(InputAction.CallbackContext context)
     {
-
+        onScaleDown = true;
         if (dragAndDrop.isDragging)
         {
-            dragAndDrop.draggedHolder.transform.localPosition = new Vector3(dragAndDrop.draggedHolder.transform.localPosition.x
-                , dragAndDrop.draggedHolder.transform.localPosition.y,Mathf.Clamp(dragAndDrop.draggedHolder.transform.localPosition.z - 0.1f, 2f, 4.5f)) ;
+            if (positonCoroutine == null) positonCoroutine = StartCoroutine(ChangePositionZ());
+
 
             return;
         }
@@ -371,39 +367,22 @@ public class PlayerInputController : MonoBehaviour
         if (interactor._colliders[0] != null && interactor._colliders[0].TryGetComponent<DirectionalScalableCube>(out dsc))
         {
             dsc.ChangeAxis(false);
-            //chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-            //chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
             dsc = null;
         }
-        //else
-        //{
-        //    if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
-        //    {
-        //        if (hit.transform.gameObject.layer==LayerMask.NameToLayer("BlueBox")&& objectToChangeAxis.TryGetComponent<DirectionalScalableCube>(out dsc))
-        //        {
-        //            if (hit.transform.TryGetComponent<Animator>(out Animator anim)&&dsc!=null)
-        //            {
-        //                anim.SetTrigger("LookingAt");
-        //                dsc.ChangeAxis(false);
-        //                chooseBox.UiTexts[1].text = "CHANGE SCALE IN:" + dsc.GetAxisString() + System.Environment.NewLine + "(M.SCROLL/R)";
-        //                chooseBox.UiTexts[1].color = dsc.ChangeTextColor();
-        //                chooseBox.lookingAt = hit.transform.gameObject;
-        //                dsc = null;
-        //            }
-
-        //        }
-
-
-        //    }
-
-        //}
+        
 
     }
 
+    private void OnScaleDownCancel(InputAction.CallbackContext context)
+    {
+        onScaleDown = false;
 
+
+    }
 
     private void OnDeviceChange(InputDevice device, InputDeviceChange change)
     {
+
         switch (change)
         {
             case InputDeviceChange.Added:
@@ -414,6 +393,7 @@ public class PlayerInputController : MonoBehaviour
                 break;
             case InputDeviceChange.Disconnected:
                 Debug.Log($"Device disconnected: {device.displayName}");
+                //InputSystem.FlushDisconnectedDevices();
                 break;
             case InputDeviceChange.Reconnected:
                 Debug.Log($"Device reconnected: {device.displayName}");
@@ -439,26 +419,25 @@ public class PlayerInputController : MonoBehaviour
             Jump();
         }
 
-        // Reset coyote time counter after a jump
-
-
     }
     
    
 
     private void Jump()
     {
+        if (Gamepad.current != null) 
+        {
+            StartCoroutine(VibrateController(.5f, 0, .2f));
+        }
         _rb.AddForce(Vector3.up * _jumpForce, ForceMode.Impulse);
 
+        
         if (airCoroutine == null)
 
         {
             airCoroutine = StartCoroutine(InAir());
         }
         
-         //wallrunScript.CalculateMaxJumpHeight(_jumpForce);
-        
-
     }
     
 
@@ -563,7 +542,7 @@ public class PlayerInputController : MonoBehaviour
 
     public bool IsGrounded()
     {
-        if (dragAndDrop.isDragging && Physics.SphereCast(transform.position, colliderRadius, Vector3.down, out RaycastHit hitWhileDragging, (playerCollider.height / 2) - colliderRadius + groundCheckDistance))
+        if (dragAndDrop.isDragging && Physics.SphereCast(transform.position, colliderRadius, Vector3.down, out RaycastHit hitWhileDragging, (transform.localScale.y) - colliderRadius + groundCheckDistance))
         {
             if (hitWhileDragging.transform.CompareTag("Draggable"))
             {
@@ -573,11 +552,8 @@ public class PlayerInputController : MonoBehaviour
         }
         
             // Perform the SphereCast to check if the player is grounded
-            return Physics.SphereCast(transform.position, colliderRadius, Vector3.down, out RaycastHit hit, (playerCollider.height / 2) - colliderRadius + groundCheckDistance);
+            return Physics.SphereCast(transform.position, colliderRadius, Vector3.down, out RaycastHit hit, (transform.localScale.y) - colliderRadius + groundCheckDistance);
         
-
-        // Perform the SphereCast to check if the player is grounded
-        //return Physics.SphereCast(transform.position, colliderRadius, Vector3.down, out RaycastHit hit, (playerCollider.height/2)-colliderRadius+ groundCheckDistance);
     }
 
 
@@ -636,7 +612,7 @@ public class PlayerInputController : MonoBehaviour
 
                 if (OnSlope())
                 {
-                    _rb.velocity = GetSlopeMoveDirection() * vel.magnitude;
+                    _rb.velocity = GetSlopeMoveDirection() * vel.magnitude*.8f;
                     Debug.Log("move4");
                     Debug.Log("Onslope");
                 }
@@ -657,7 +633,7 @@ public class PlayerInputController : MonoBehaviour
             //if (waitCoroutine == null) StartCoroutine(WaitFor(2f, w8));
 
 
-            if (!wallrunScript.isWallrunning && airCoroutine == null /*&& w8*/ /*&& (_rb.velocity.magnitude >= vel.magnitude)*/)
+            if (!wallrunScript.isWallrunning && airCoroutine == null&&!onSlope /*&& w8*/ /*&& (_rb.velocity.magnitude >= vel.magnitude)*/)
             {
                 _rb.velocity = new Vector3(0, _rb.velocity.y, 0);
             }
@@ -668,7 +644,7 @@ public class PlayerInputController : MonoBehaviour
     float xRotation;
 
     
-    bool isMouse = true;
+   
     private void HandleLook()
     {
         if (rotateCoroutine != null) { return; }
@@ -678,18 +654,11 @@ public class PlayerInputController : MonoBehaviour
         {
 
 
-            if (Gamepad.current != null)
-            {
-                isMouse = false;
-            }
-            else if (Mouse.current != null)
-            {
-                isMouse = true;
-            }
+            
 
 
-            float mouseX = lookDir.x * (isMouse ? _lookSensitivityHorizontal * 0.1f : _lookSensitivityHorizontal) * Time.deltaTime;
-            float mouseY = lookDir.y * (isMouse ? _lookSensitivityVertical * 0.1f : _lookSensitivityVertical) * Time.deltaTime;
+            float mouseX = lookDir.x * _lookSensitivityHorizontal * 0.1f * Time.deltaTime;
+            float mouseY = lookDir.y *_lookSensitivityVertical*0.1f* Time.deltaTime;
 
             
 
@@ -721,7 +690,7 @@ public class PlayerInputController : MonoBehaviour
         if (!isWalking)
         {
             isWalking = true;
-            smoothShakeFrequency *= camWobbleWalking;
+            if(camWobbleOn)smoothShakeFrequency *= camWobbleWalking;
             //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleWalking;
 
         }
@@ -732,7 +701,7 @@ public class PlayerInputController : MonoBehaviour
     private void OnWalkCancel(InputAction.CallbackContext context)
     {
         isWalking = false;
-        smoothShakeFrequency /= camWobbleWalking;
+        if (camWobbleOn) smoothShakeFrequency /= camWobbleWalking;
         //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency / camWobbleWalking;
 
 
@@ -743,7 +712,7 @@ public class PlayerInputController : MonoBehaviour
     private void OnRun(InputAction.CallbackContext context)
     {
         isRunning = true;
-        smoothShakeFrequency *= camWobbleRunning;
+        if (camWobbleOn) smoothShakeFrequency *= camWobbleRunning;
         //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleRunning;
 
     }
@@ -752,7 +721,7 @@ public class PlayerInputController : MonoBehaviour
     {
         isRunning = false;
         targetFOV = normalFOV;
-        smoothShakeFrequency /= camWobbleRunning;
+        if (camWobbleOn) smoothShakeFrequency /= camWobbleRunning;
         //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency / camWobbleRunning;
 
 
@@ -763,9 +732,10 @@ public class PlayerInputController : MonoBehaviour
     {
         isCrouching = true;
         isRunning = false;
+        _jumpForce = _jumpForceOnCrouch;
         targetFOV = crouchFOV;
-        smoothShakeFrequency *= camWobbleCrouching;
-        //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleCrouching;
+        if (camWobbleOn) smoothShakeFrequency *= camWobbleCrouching;
+        
 
         startYscale = transform.localScale.y;
         transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y*crouchYscale, transform.localScale.z);
@@ -776,6 +746,7 @@ public class PlayerInputController : MonoBehaviour
     Coroutine checkUpCoroutine;
     private void OnCrouchCancel(InputAction.CallbackContext context)
     {
+        
         if (checkUpCoroutine == null)
         {
             checkUpCoroutine = StartCoroutine(CheckUp());
@@ -799,9 +770,10 @@ public class PlayerInputController : MonoBehaviour
             yield return new WaitForSeconds(.5f);
             yield return null;
         }
+        _jumpForce = _jumpForceAtStart;
         canJump = true;
         isCrouching = false;
-        smoothShakeFrequency /= camWobbleCrouching;
+        if (camWobbleOn) smoothShakeFrequency /= camWobbleCrouching;
 
 
         
@@ -815,12 +787,14 @@ public class PlayerInputController : MonoBehaviour
 
     private bool OnSlope()
     {
-
-        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerCollider.height * 0.5f + (playerCollider.height * transform.localScale.y) * 0.4f))
+        float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+        
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, transform.localScale.y + ((transform.localScale.y) * Mathf.Sin(angle) * Mathf.Sin(angle))+groundCheckDistance))
         {
-            //Debug.Log("ONslope");
-            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
-            return angle < maxSlopeAngle && angle != 0;
+            
+            
+            //Debug.Log(angle);
+            return angle <= maxSlopeAngle && angle >= 2;
         }
 
         return false;
@@ -831,7 +805,18 @@ public class PlayerInputController : MonoBehaviour
         return Vector3.ProjectOnPlane(vel, slopeHit.normal).normalized;
     }
 
-    
+
+    public IEnumerator VibrateController(float intensityL, float intensityR, float time)
+    {
+        if (Gamepad.current != null)
+        {
+            Gamepad.current.SetMotorSpeeds(intensityL, intensityR);
+            yield return new WaitForSeconds(time); // Adjust duration as needed
+            Gamepad.current.SetMotorSpeeds(0, 0);
+        }
+        yield return null;
+    }
+
     private void OnObjectDrag(InputAction.CallbackContext context)
     {
         if (dragAndDrop.isDragging)
@@ -841,7 +826,8 @@ public class PlayerInputController : MonoBehaviour
         } else if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hitt, dragAndDrop.dragDistance, dragAndDrop.draggableLayer)
             && !dragAndDrop.isDragging)
         {
-            dragAndDrop.TryStartDrag();
+            
+           if(dragAndDrop.TryStartDrag(hitt))StartCoroutine(VibrateController(.5f, 0, .2f));
         } 
     }
     private void OnObjectDragCancel(InputAction.CallbackContext context)
@@ -850,7 +836,6 @@ public class PlayerInputController : MonoBehaviour
 
     }
 
-    //float maxY=0, prevMaxY;
 
     [HideInInspector] public bool isLeftClick,isRightClick;
     Coroutine weightCoroutine,scaleCoroutine, dimensionCoroutine;
@@ -858,7 +843,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnLeftClick(InputAction.CallbackContext context)
     {
-        //if (pauseMenuScript.GamePaused) { return; }
+        
         isLeftClick = true;
         if (dragAndDrop.isDragging ) {
 
@@ -874,16 +859,10 @@ public class PlayerInputController : MonoBehaviour
         
         GameObject effectedObject=null;
         
-            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, chooseBox.interactRange, chooseBox.hitWhat))
+            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, dragAndDrop.dragDistance, dragAndDrop.draggableLayer))
             {
                 if (hit.transform.tag == "Box"||(hit.transform.gameObject.layer == LayerMask.NameToLayer("BlueBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("YellowBox")|| hit.transform.gameObject.layer == LayerMask.NameToLayer("GreenBox")))
                 {
-                    if (hit.transform.TryGetComponent<Animator>(out Animator anim))
-                    {
-                        anim.SetTrigger("LookingAt");//////
-                       
-                    }
-
                     effectedObject = hit.transform.gameObject;
                     
                 }
@@ -907,7 +886,7 @@ public class PlayerInputController : MonoBehaviour
             else if (effectedObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube))
             {
                 if (weightCoroutine == null)
-                    weightCoroutine = StartCoroutine(IncreaseWeight(heavyCube));
+                    weightCoroutine = StartCoroutine(ChangeWeight(heavyCube, true));
             }
             else if (effectedObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsc)) 
             {
@@ -923,17 +902,27 @@ public class PlayerInputController : MonoBehaviour
     {
         
         while (isLeftClick&&dragAndDrop.isDragging) {
-            //Debug.Log("OBJE DONMELIII!!!");
+            
             rotation = _lookAction.ReadValue<Vector2>();
             rotation *= rotateSpeed;
-            
-                dragAndDrop.draggedObject.transform.Rotate(Vector3.up, rotation.x, Space.World);
-                dragAndDrop.draggedObject.transform.Rotate(Vector3.right, rotation.y, Space.World);
+
+
+            dragAndDrop.draggedObject.transform.Rotate(transform.right, rotation.y, Space.World);
+            dragAndDrop.draggedObject.transform.Rotate(Vector3.up, rotation.x, Space.World);
+
+            if (Gamepad.current != null) 
+            {
+                Gamepad.current.SetMotorSpeeds(0, rotation.magnitude*0.2f);
+            }
          
             yield return null;
 
         }
-       
+        if (Gamepad.current != null)
+        {
+            Gamepad.current.SetMotorSpeeds(0, 0);
+        }
+
 
         rotateCoroutine = null;
     }
@@ -941,7 +930,6 @@ public class PlayerInputController : MonoBehaviour
     Coroutine rotateCoroutine;
     private void OnLeftClickCancel(InputAction.CallbackContext context)
     {
-        //if (pauseMenuScript.GamePaused) { return; }
         isLeftClick = false;
         if (dragAndDrop.isDragging )
         {
@@ -965,7 +953,6 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnRightClick(InputAction.CallbackContext context)
     {
-        //if (pauseMenuScript.GamePaused) { return; }
         if (dragAndDrop.isDragging) return;
         isRightClick = true;
         GameObject effectedObject = null;
@@ -974,18 +961,11 @@ public class PlayerInputController : MonoBehaviour
             {
                 if (hit.transform.CompareTag("Draggable"))
                 {
-                    if (hit.transform.TryGetComponent<Animator>(out Animator anim))
-                    {
-                        anim.SetTrigger("LookingAt");//////
-
-                    }
-
                     effectedObject = hit.transform.gameObject;
-
                 }
                 else
                 {
-                effectedObject = null;
+                    effectedObject = null;
                     return;
                 }
 
@@ -1001,7 +981,7 @@ public class PlayerInputController : MonoBehaviour
             else if (effectedObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube))
             {
                 if (weightCoroutine == null)
-                    weightCoroutine = StartCoroutine(DecreaseWeight(heavyCube));
+                    weightCoroutine = StartCoroutine(ChangeWeight(heavyCube,false));
             }
             else if (effectedObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsc))
             {
@@ -1014,7 +994,7 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnRightClickCancel(InputAction.CallbackContext context)
     {
-        //if (pauseMenuScript.GamePaused) { return; }
+       
         if (dragAndDrop.isDragging) return;
         isRightClick = false;
         if (weightCoroutine != null)
@@ -1031,10 +1011,24 @@ public class PlayerInputController : MonoBehaviour
 
     IEnumerator ChangeSize(ScalableCube scalableCube,bool increase)
     {
+        Animator animator = null;
+        scalableCube.transform.TryGetComponent<Animator>(out animator);
         while (isLeftClick||isRightClick)
         {
-            if (increase) { scalableCube.Interact(); }
-            else { scalableCube.InteractAlt(); }
+            if (increase&& scalableCube.growthCount != scalableCube.growthCountMax) 
+            { 
+                scalableCube.Interact();
+                
+                animator.SetTrigger("LookingAt");
+
+                
+            }
+            else if(!increase&& scalableCube.growthCount != scalableCube.growthCountMin) 
+            { 
+                scalableCube.InteractAlt();
+               
+                animator.SetTrigger("LookingAt");
+            }
             
             yield return new WaitForSeconds(.1f);
             yield return null;
@@ -1045,66 +1039,112 @@ public class PlayerInputController : MonoBehaviour
 
     }
 
-    IEnumerator IncreaseWeight(HeavyCube heavyCube)
+    IEnumerator ChangePositionZ() 
     {
-        while (isLeftClick)
+        while (onScaleUp || onScaleDown)
         {
-            heavyCube.Interact();
-            yield return new WaitForSeconds(.1f);
+            if (onScaleUp)
+            {
+                dragAndDrop.draggedHolder.transform.localPosition = new Vector3(dragAndDrop.draggedHolder.transform.localPosition.x
+                , dragAndDrop.draggedHolder.transform.localPosition.y, Mathf.Clamp(dragAndDrop.draggedHolder.transform.localPosition.z + 0.1f, 2f, 4.5f));
+
+            }
+            else if (onScaleDown)
+            {
+                dragAndDrop.draggedHolder.transform.localPosition = new Vector3(dragAndDrop.draggedHolder.transform.localPosition.x
+                 , dragAndDrop.draggedHolder.transform.localPosition.y, Mathf.Clamp(dragAndDrop.draggedHolder.transform.localPosition.z - 0.1f, 2f, 4.5f));
+
+
+            }
+
+
+
+            yield return new WaitForEndOfFrame();
             yield return null;
         }
-        weightCoroutine = null;
-        yield return null;
-
-
+        positonCoroutine=null;
     }
 
-
-
-    IEnumerator DecreaseWeight(HeavyCube heavyCube)
+    IEnumerator ChangeWeight(HeavyCube heavyCube,bool increase)
     {
-        while (isRightClick)
+        Animator animator=null;
+        heavyCube.transform.TryGetComponent<Animator>(out animator);
+        while (isLeftClick||isRightClick)
         {
-            heavyCube.InteractAlt();
+            if (increase && heavyCube.currentWeight != heavyCube.maxWeight)
+            {
+                heavyCube.Interact();
+
+                animator.SetTrigger("LookingAt");
+
+            } else if(!increase && heavyCube.currentWeight != heavyCube.minWeight)
+            {
+                heavyCube.InteractAlt();
+
+                animator.SetTrigger("LookingAt");
+
+                
+            }
+            
+            
+            
             yield return new WaitForSeconds(.1f);
             yield return null;
         }
+        
+
+        
         weightCoroutine = null;
         yield return null;
+
+
     }
 
 
     IEnumerator ChangeDimensions(DirectionalScalableCube dsc,bool increase)
     {
+        Animator animator = null;
+        dsc.transform.TryGetComponent<Animator>(out animator);
         while (isLeftClick || isRightClick)
         {
-            if (increase) {dsc.Interact(); }
-            if (!increase){ dsc.InteractAlt(); }
+            if (increase&&dsc.GetCurrentGrowth()!=dsc.GetMaxGrowth()) 
+            {
+                dsc.Interact();
+                animator.SetTrigger("LookingAt");
+            }
+            if (!increase&& dsc.GetCurrentGrowth() != dsc.GetMinGrowth()) 
+            {
+                dsc.InteractAlt();
+                animator.SetTrigger("LookingAt");
+            }
             
             yield return new WaitForSeconds(.1f);
             yield return null;
         }
+        
         dimensionCoroutine = null;
         yield return null;
     }
 
     [HideInInspector]public bool onSlope;
     private void Update()
-    {// Manage coyote time
-        //Debug.Log("Isgrounded:" + IsGrounded());
-
+    {
         mainCamera.m_Lens.FieldOfView = Mathf.Lerp(mainCamera.m_Lens.FieldOfView, targetFOV, fovTransitionSpeed * Time.deltaTime);
-        //mainCamera.m_Lens.FieldOfView = Mathf.Lerp(mainCamera.m_Lens.FieldOfView, targetFOV, fovTransitionSpeed * Time.deltaTime);
-        smoothShake.positionShake.frequency = Vector3.MoveTowards(smoothShake.positionShake.frequency, smoothShakeFrequency, camWobbleChangeSpeed * Time.deltaTime);
+
+        CheckCamWobble();
+        if (camWobbleOn)
+            smoothShake.positionShake.frequency = Vector3.MoveTowards(smoothShake.positionShake.frequency, smoothShakeFrequency, camWobbleChangeSpeed * Time.deltaTime);
+        
         onSlope = OnSlope();
+        Debug.Log("onslope:" + onSlope);
         _rb.useGravity = !onSlope;
 
         if (onSlope)
         {
-            _rb.drag = 4f;
-            jumpRaycastLenght = 1.12f * transform.localScale.y;
+            _rb.drag = 1f;
+            jumpRaycastLenght = 1.02f * transform.localScale.y;
             _jumpForce=_jumpForceOnSlope;
-            _rb.AddForce(-slopeHit.normal * 6f, ForceMode.Force);
+            _rb.AddForce(-slopeHit.normal * 4f, ForceMode.Force);
         }
         else 
         {
@@ -1113,13 +1153,16 @@ public class PlayerInputController : MonoBehaviour
             jumpRaycastLenght = 1.02f * transform.localScale.y;
         }
 
+
+        if (isCrouching) 
+        {
+            _jumpForce = _jumpForceOnCrouch;
+        }
+
         if (IsGrounded()&&!wallrunScript.isWallrunning)
         {
-            
-
             coyoteTimeCounter = coyoteTime;
-            //wasGrounded = true;
-            //wallrunScript.StopWallrun();
+            
         }
         else
         {
@@ -1127,14 +1170,13 @@ public class PlayerInputController : MonoBehaviour
         }
 
         
-        interactor.TextUpdate(dragAndDrop.isDragging);
+        textManager.TextUpdate(dragAndDrop.isDragging,interactor._numFound,interactor._colliders);
 
         HandleMovement();
         maxVelVector = Vector3.ClampMagnitude(_rb.velocity, maxVelocity);
         if (inAir)
             Debug.DrawRay(transform.position, -transform.up * jumpRaycastLenght, Color.cyan, 1f);
-        // HandleJump();
-        //Debug.Log("veloc:"+_rb.velocity);
+
     }
 
     private void FixedUpdate()
@@ -1150,29 +1192,35 @@ public class PlayerInputController : MonoBehaviour
 
     }
 
+    private void CheckCamWobble() 
+    {
+        if (smoothShake.enabled && !camWobbleOn)
+        {
+            smoothShake.enabled = false;
+        } else if (!smoothShake.enabled&& camWobbleOn) 
+        {
+            smoothShake.enabled = true;
+        }
+        
+    }
+
+    public void ChangeWobble(bool b) 
+    {
+        camWobbleOn=b;
+
+        PlayerPrefs.SetInt("camWobble", boolToInt(b));
+        PlayerPrefs.Save();
+    }
+
+    int boolToInt(bool val)
+    {
+        if (val)
+            return 1;
+        else
+            return 0;
+    }
+
     
-    //void OnDrawGizmos()
-    //{
-    //    if (showJumpGizmos)
-    //    {
-    //        // Set Gizmo color
-    //        Gizmos.color = Color.red;
-
-    //        // Draw the initial sphere at the start of the SphereCast
-    //        Gizmos.DrawWireSphere(transform.position, colliderRadius);
-
-    //        // Draw a line from the start position downward
-    //        Gizmos.DrawLine(spherePosition, spherePosition + Vector3.down * groundCheckDistance);
-
-    //        // Draw the end sphere at the bottom of the SphereCast
-    //        Gizmos.DrawWireSphere(transform.position + Vector3.down * groundCheckDistance, colliderRadius);
-
-    //        // Reset the flag after drawing the gizmo
-    //        showJumpGizmos = false;
-    //    }
-    //}
-
-
 
 
 }
