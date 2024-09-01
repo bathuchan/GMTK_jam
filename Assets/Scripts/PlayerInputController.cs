@@ -204,7 +204,7 @@ public class PlayerInputController : MonoBehaviour
         
         startYscale = transform.localScale.y;
         xRotation=mainCamera.transform.localEulerAngles.x;
-        interactor= GetComponentInChildren<Interactor>();
+        interactor= GameObject.FindAnyObjectByType<Interactor>();
     }
 
 
@@ -544,11 +544,11 @@ public class PlayerInputController : MonoBehaviour
     {
         if (dragAndDrop.isDragging && Physics.SphereCast(transform.position, colliderRadius, Vector3.down, out RaycastHit hitWhileDragging, (transform.localScale.y) - colliderRadius + groundCheckDistance))
         {
-            if (hitWhileDragging.transform.CompareTag("Draggable"))
-            {
-                airTime = 0f;
-                return false;
-            }
+            //if (hitWhileDragging.transform.CompareTag("Draggable"))
+            //{
+            //    airTime = 0f;
+            //    return false;
+            //}
         }
         
             // Perform the SphereCast to check if the player is grounded
@@ -603,7 +603,7 @@ public class PlayerInputController : MonoBehaviour
             if (!wallrunScript.isWallrunning && airCoroutine != null /*&& (_rb.velocity.magnitude >= vel.magnitude)*/)
             {
                 Debug.Log("move2");
-                _rb.AddForce(new Vector3(vel.x/2, 0, vel.z/2), ForceMode.Force);
+                _rb.AddForce(new Vector3(vel.x* 0.8f, 0, vel.z*0.8f), ForceMode.Force);
 
 
             }
@@ -1169,8 +1169,8 @@ public class PlayerInputController : MonoBehaviour
             coyoteTimeCounter -= Time.deltaTime;
         }
 
+        textManager.TextUpdate(dragAndDrop.isDragging, interactor._numFound, interactor._colliders);
         
-        textManager.TextUpdate(dragAndDrop.isDragging,interactor._numFound,interactor._colliders);
 
         HandleMovement();
         maxVelVector = Vector3.ClampMagnitude(_rb.velocity, maxVelocity);

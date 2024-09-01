@@ -75,7 +75,9 @@ public class TextManager : MonoBehaviour
 
             if (!pickupText.IsActive()) pickupText.gameObject.SetActive(true);
             if (!rotateText.IsActive()) rotateText.gameObject.SetActive(true);
+            if (!boxPosition.IsActive()) boxPosition.gameObject.SetActive(true); ;
             pickupText.text = "DROP (F)";
+            
             foreach (TextMeshProUGUI text in UiTexts)
             {
                 text.gameObject.SetActive(false);
