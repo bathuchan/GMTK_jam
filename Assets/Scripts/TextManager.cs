@@ -5,84 +5,105 @@ using UnityEngine;
 
 public class TextManager : MonoBehaviour
 {
-    public TextMeshProUGUI[] UiTexts;
-    public TextMeshProUGUI rotateText, pickupText, boxPosition;
-    private NewDragAndDrop _dragAndDrop;
+    
+    public GameObject rangeText,boxTypeText,rotateText, pickupText, boxPosition;
+    //[SerializeField]GameObject rangeTextKB, boxTypeTextKB, rotateTextKB, pickupTextKB, boxPositionKB;
+    //[SerializeField] GameObject rangeTextGP, boxTypeTextGP, rotateTextGP, pickupTextGP, boxPositionGP;
+   
+    public List<GameObject> keyboardUIElements, gamepadUIElements;
+    // List<TextMeshProUGUI> accordingUIElements;
 
-    private void Start()
-    {
-        _dragAndDrop = GameObject.FindAnyObjectByType<NewDragAndDrop>();
-    }
 
-    public void TextUpdate(bool isDragging, int _numFound, Collider[] _colliders)
+    
+
+    public void TextUpdate(bool isDragging, int _numFound, Collider[] _colliders,bool isKeyboard, bool isGamepad)
     {
-        if (isDragging && !pickupText.IsActive() && !rotateText.IsActive())
+        if (isGamepad) 
         {
-            pickupText.gameObject.SetActive(true);
-            rotateText.gameObject.SetActive(true);
-            boxPosition.gameObject.SetActive(true);
-            foreach (TextMeshProUGUI text in UiTexts)
+            foreach (GameObject go in gamepadUIElements) 
             {
-                text.gameObject.SetActive(false);
-
+                go.SetActive(true);
             }
+            foreach (GameObject go in keyboardUIElements)
+            {
+                go.SetActive(false);
+            }
+
         }
-        else if (!isDragging && pickupText.IsActive() && rotateText.IsActive())
+        if (isKeyboard)
+        {
+            foreach (GameObject go in gamepadUIElements)
+            {
+                go.SetActive(false);
+            }
+            foreach (GameObject go in keyboardUIElements)
+            {
+                go.SetActive(true);
+            }
+
+        }
+        //if (isKeyboard) { accordingUIElements = gamepadUIElements; }
+
+        if (isDragging && !pickupText.activeSelf && !rotateText.activeSelf)
+        {
+            pickupText.SetActive(true);
+            rotateText.SetActive(true);
+            boxPosition.SetActive(true);
+            
+            rangeText.SetActive(false);
+            boxTypeText.SetActive(false);
+            
+        }
+        else if (!isDragging && pickupText.activeSelf && rotateText.activeSelf)
         {
             pickupText.gameObject.SetActive(false);
             rotateText.gameObject.SetActive(false);
             boxPosition.gameObject.SetActive(false);
-            foreach (TextMeshProUGUI text in UiTexts)
-            {
-                text.gameObject.SetActive(false);
-
-            }
+            
+            rangeText.SetActive(false);
+            boxTypeText.SetActive(false);
         }
 
         if (_numFound != 0 && !isDragging)
         {
 
-            if (!pickupText.IsActive()) pickupText.gameObject.SetActive(true);
-            if (rotateText.IsActive()) rotateText.gameObject.SetActive(false);
-            boxPosition.gameObject.SetActive(false);
+            if (!pickupText.activeSelf) pickupText.SetActive(true);
+            if (rotateText.activeSelf) rotateText.SetActive(false);
+            boxPosition.SetActive(false);
 
 
-            pickupText.text = "PICKUP(F)";
+            pickupText.GetComponent<TextMeshProUGUI>().text = "PICK UP (  )";
 
-
-            foreach (TextMeshProUGUI text in UiTexts)
-            {
-                text.gameObject.SetActive(true);
+            TextMeshProUGUI t = boxTypeText.GetComponent<TextMeshProUGUI>();
+            rangeText.SetActive (true);
+               boxTypeText.gameObject.SetActive(true);
                 if (_colliders[0].transform.gameObject.TryGetComponent<ScalableCube>(out ScalableCube scalableCube))
                 {
-                    UiTexts[1].text = "CHANGE SCALE";
-                    UiTexts[1].color = Color.yellow;
+                    t.text = "CHANGE SCALE";
+                    t.color = Color.yellow;
                 }
                 else if (_colliders[0].transform.gameObject.TryGetComponent<HeavyCube>(out HeavyCube heavyCube))
                 {
-                    UiTexts[1].text = "CHANGE WEIGHT";
-                    UiTexts[1].color = Color.green;
+                    t.text = "CHANGE WEIGHT";
+                    t.color = Color.green;
                 }
                 else if (_colliders[0].transform.gameObject.TryGetComponent<DirectionalScalableCube>(out DirectionalScalableCube dsCube))
                 {
-                    UiTexts[1].text = "CHANGE SCALE IN:" + dsCube.GetAxisString() + System.Environment.NewLine + " (M.SCROLL/R)";
-                    UiTexts[1].color = dsCube.ChangeTextColor();
+                    t.text = "CHANGE SCALE IN:" + dsCube.GetAxisString() + System.Environment.NewLine + " (M.SCROLL/R)";
+                    t.color = dsCube.ChangeTextColor();
                 }
-            }
+            
         }
         else if (isDragging)
         {
 
-            if (!pickupText.IsActive()) pickupText.gameObject.SetActive(true);
-            if (!rotateText.IsActive()) rotateText.gameObject.SetActive(true);
-            if (!boxPosition.IsActive()) boxPosition.gameObject.SetActive(true); ;
-            pickupText.text = "DROP (F)";
-            
-            foreach (TextMeshProUGUI text in UiTexts)
-            {
-                text.gameObject.SetActive(false);
+            if (!pickupText.activeSelf) pickupText.gameObject.SetActive(true);
+            if (!rotateText.activeSelf) rotateText.gameObject.SetActive(true);
+            if (!boxPosition.activeSelf) boxPosition.gameObject.SetActive(true); ;
+            pickupText.GetComponent<TextMeshProUGUI>().text = "   DROP   (  )";
 
-            }
+            rangeText.SetActive(false);
+            boxTypeText.SetActive(false);
 
 
 
@@ -94,13 +115,11 @@ public class TextManager : MonoBehaviour
         }
         else if (_numFound == 0)
         {
-            if (pickupText.IsActive()) pickupText.gameObject.SetActive(false);
-            if (rotateText.IsActive()) rotateText.gameObject.SetActive(false);
-            foreach (TextMeshProUGUI text in UiTexts)
-            {
-                text.gameObject.SetActive(false);
-
-            }
+            if (pickupText.activeSelf) pickupText.gameObject.SetActive(false);
+            if (rotateText.activeSelf) rotateText.gameObject.SetActive(false);
+            
+            rangeText.SetActive(false);
+            boxTypeText.SetActive(false);
 
 
         }

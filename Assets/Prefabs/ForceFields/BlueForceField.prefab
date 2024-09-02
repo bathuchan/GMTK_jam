@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 5819813512509271131}
   - component: {fileID: 5441407175964827622}
   - component: {fileID: 6385122467217484977}
-  - component: {fileID: 872740994754804997}
   m_Layer: 1
   m_Name: BlueForceField
   m_TagString: Untagged
@@ -106,15 +105,3 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &872740994754804997
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3143629081940709884}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2951c560ce2a6e84da9c72b6d0cf8eac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

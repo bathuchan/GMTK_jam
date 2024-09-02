@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 5948579757631497491}
   - component: {fileID: 6835084791477446174}
   - component: {fileID: 6038722215283372619}
-  - component: {fileID: 4408888154531288327}
   m_Layer: 1
   m_Name: GreenForceField
   m_TagString: Untagged
@@ -106,15 +105,3 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4408888154531288327
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6430304034251792081}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2951c560ce2a6e84da9c72b6d0cf8eac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

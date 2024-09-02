@@ -6,6 +6,8 @@ using Cinemachine;
 using SmoothShakeFree;
 using System;
 using UnityEditor;
+using Unity.VisualScripting;
+using UnityEngine.EventSystems;
 
 
 [RequireComponent(typeof(Rigidbody))]
@@ -168,7 +170,7 @@ public class PlayerInputController : MonoBehaviour
     private void Awake()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        
         targetFOV = normalFOV;
         mainCamera.m_Lens.FieldOfView = normalFOV;
 
@@ -233,10 +235,11 @@ public class PlayerInputController : MonoBehaviour
         _scaleScrollDownAction = _defaultPlayerActions.Player.AxisDown;
         _scaleScrollDownAction.Enable();
 
-        
+
         //_shootAction = _defaultPlayerActions.Player.Fire;
         //_shootAction.Enable();
 
+        _lookAction.performed += OnLook;
         _moveAction.performed += OnWalk;
         _moveAction.canceled += OnWalkCancel;
         _jumpAction.performed += OnJump; // Subscribe to jump action
@@ -276,8 +279,8 @@ public class PlayerInputController : MonoBehaviour
         _scaleScrollButtonAction.Disable();
         _scaleScrollUpAction.Disable();
         _scaleScrollDownAction.Disable();
-        
 
+        _lookAction.performed -= OnLook;
         _moveAction.performed -= OnWalk;
         _moveAction.canceled -= OnWalkCancel;
         _jumpAction.performed -= OnJump;
@@ -306,15 +309,63 @@ public class PlayerInputController : MonoBehaviour
 
         InputSystem.onDeviceChange -= OnDeviceChange; // Unsubscribe from device change events
     }
+
+    private bool isGamepadInput = false;
+    private bool isKeyboardInput = false;
+
+    private void OnInputDetected(InputAction.CallbackContext context)
+    {
+        var device = context.control.device;
+
+        if (device is Gamepad && !isGamepadInput)
+        {
+            isGamepadInput = true;
+            isKeyboardInput = false;
+            UpdateUIForGamepad();
+        }
+        else if ((device is Keyboard||device is Mouse) && !isKeyboardInput)
+        {
+            isKeyboardInput = true;
+            isGamepadInput = false;
+            UpdateUIForKeyboard();
+        }
+    }
+
+    private void UpdateUIForGamepad()
+    {
+        Debug.Log("Gamepad input detected, updating UI for gamepad.");
+
+        // Example: Set the first UI button to be selected in the Event System
+       // EventSystem.current.SetSelectedGameObject(null);
+        //EventSystem.current.SetSelectedGameObject(GameObject.Find("YourGamepadUIElement"));
+    }
+
+    private void UpdateUIForKeyboard()
+    {
+        Debug.Log("Keyboard input detected, updating UI for keyboard.");
+
+        // Example: Set the first UI button to be selected in the Event System
+        //EventSystem.current.SetSelectedGameObject(null);
+        //EventSystem.current.SetSelectedGameObject(GameObject.Find("YourKeyboardUIElement"));
+    }
+
     DirectionalScalableCube dsc;
     private void OnScaleButton(InputAction.CallbackContext context)
     {
+        OnInputDetected(context);
         if (interactor._colliders[0] != null && interactor._colliders[0].TryGetComponent<DirectionalScalableCube>(out dsc))
         {
             dsc.ChangeAxis(true);
             dsc = null;
         }
         
+    }
+
+    private void OnLook(InputAction.CallbackContext context)
+    {
+        Vector2 lookDir = _lookAction.ReadValue<Vector2>();
+
+        if (lookDir.magnitude > _lookTreshold) OnInputDetected(context);
     }
     private void OnPauseButton(InputAction.CallbackContext context)
     {
@@ -325,7 +376,8 @@ public class PlayerInputController : MonoBehaviour
     Coroutine positonCoroutine;
     private void OnScaleUp(InputAction.CallbackContext context)
     {
-        onScaleUp=true;
+        OnInputDetected(context);
+        onScaleUp =true;
         if (dragAndDrop.isDragging) 
         {
 
@@ -354,6 +406,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnScaleDown(InputAction.CallbackContext context)
     {
+        OnInputDetected(context);
         onScaleDown = true;
         if (dragAndDrop.isDragging)
         {
@@ -407,7 +460,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnJump(InputAction.CallbackContext context)
     {
-
+        OnInputDetected(context);
         jumping = true;
         showJumpGizmos=true;
         if (coyoteTimeCounter > 0 && wasGrounded && canJump)
@@ -418,10 +471,25 @@ public class PlayerInputController : MonoBehaviour
             wasGrounded = false;
             Jump();
         }
+        if (wallrunScript.isWallrunning) 
+        {
+            wallrunScript.StopWallrun();
+            if (reduceCoroutine != null) { StopCoroutine(reduceCoroutine); }
 
+            StopCoroutine(airCoroutine);
+            airCoroutine = null;
+            StartCoroutine(WaitAndWallrideAgain());
+                
+            
+        }
     }
-    
-   
+
+    IEnumerator WaitAndWallrideAgain() 
+    {
+        yield return new WaitForSeconds(1f);
+        airCoroutine=StartCoroutine(InAir());
+        yield return null;
+    }
 
     private void Jump()
     {
@@ -445,11 +513,10 @@ public class PlayerInputController : MonoBehaviour
     private void OnJumpCancel(InputAction.CallbackContext context)
     {
         jumping = false;
-        if (reduceCoroutine != null) { StopCoroutine(reduceCoroutine); }
-        if (airCoroutine == null) { airCoroutine = StartCoroutine(InAir()); }
+        
 
-        wallrunScript.StopWallrun();
-        if (wallrunScript. wallrideCooldown == null) wallrunScript.wallrideCooldown = StartCoroutine(wallrunScript.WallJumpCooldown());
+        //wallrunScript.StopWallrun();
+        //if (wallrunScript. wallrideCooldown == null) wallrunScript.wallrideCooldown = StartCoroutine(wallrunScript.WallJumpCooldown());
 
 
     }
@@ -480,7 +547,7 @@ public class PlayerInputController : MonoBehaviour
 
             yield return new WaitForSeconds(0.1f);
 
-            if (jumping) { 
+            if (!wallrunScript.isWallrunning) { 
                 Debug.Log("Checkin for wall");
                 wallrunScript.CheckForWall();
                 if (wallrunScript.isWallRight || wallrunScript.isWallLeft)
@@ -492,6 +559,7 @@ public class PlayerInputController : MonoBehaviour
                     {
                         
                         wallrunScript.StartWallrun();
+                        
                     } 
 
                     
@@ -521,6 +589,7 @@ public class PlayerInputController : MonoBehaviour
         airTime = 0f;
         
         airCoroutine = null;
+        wasGrounded = true;
         inAir = false;
         
 
@@ -603,7 +672,7 @@ public class PlayerInputController : MonoBehaviour
             if (!wallrunScript.isWallrunning && airCoroutine != null /*&& (_rb.velocity.magnitude >= vel.magnitude)*/)
             {
                 Debug.Log("move2");
-                _rb.AddForce(new Vector3(vel.x* 0.8f, 0, vel.z*0.8f), ForceMode.Force);
+                _rb.AddForce(new Vector3(vel.x* 0.6f, 0, vel.z*0.6f), ForceMode.Force);
 
 
             }
@@ -652,9 +721,9 @@ public class PlayerInputController : MonoBehaviour
 
         if (lookDir.magnitude > _lookTreshold)
         {
-
-
             
+
+
 
 
             float mouseX = lookDir.x * _lookSensitivityHorizontal * 0.1f * Time.deltaTime;
@@ -687,6 +756,11 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnWalk(InputAction.CallbackContext context)
     {
+        Vector2 moveDir = _moveAction.ReadValue<Vector2>();
+
+
+        if (moveDir.magnitude > _lookTreshold) OnInputDetected(context);
+
         if (!isWalking)
         {
             isWalking = true;
@@ -700,6 +774,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnWalkCancel(InputAction.CallbackContext context)
     {
+        
         isWalking = false;
         if (camWobbleOn) smoothShakeFrequency /= camWobbleWalking;
         //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency / camWobbleWalking;
@@ -711,6 +786,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnRun(InputAction.CallbackContext context)
     {
+        OnInputDetected(context);
         isRunning = true;
         if (camWobbleOn) smoothShakeFrequency *= camWobbleRunning;
         //smoothShake.positionShake.frequency = smoothShake.positionShake.frequency * camWobbleRunning;
@@ -730,6 +806,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnCrouch(InputAction.CallbackContext context)
     {
+        OnInputDetected(context);
         isCrouching = true;
         isRunning = false;
         _jumpForce = _jumpForceOnCrouch;
@@ -819,6 +896,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnObjectDrag(InputAction.CallbackContext context)
     {
+        OnInputDetected(context);
         if (dragAndDrop.isDragging)
         {
             dragAndDrop.StopDrag();
@@ -843,7 +921,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnLeftClick(InputAction.CallbackContext context)
     {
-        
+        OnInputDetected(context);
         isLeftClick = true;
         if (dragAndDrop.isDragging ) {
 
@@ -953,6 +1031,7 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnRightClick(InputAction.CallbackContext context)
     {
+        OnInputDetected(context);
         if (dragAndDrop.isDragging) return;
         isRightClick = true;
         GameObject effectedObject = null;
@@ -1169,7 +1248,7 @@ public class PlayerInputController : MonoBehaviour
             coyoteTimeCounter -= Time.deltaTime;
         }
 
-        textManager.TextUpdate(dragAndDrop.isDragging, interactor._numFound, interactor._colliders);
+        textManager.TextUpdate(dragAndDrop.isDragging, interactor._numFound, interactor._colliders,isKeyboardInput,isGamepadInput);
         
 
         HandleMovement();
