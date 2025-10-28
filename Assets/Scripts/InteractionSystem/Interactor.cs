@@ -31,7 +31,14 @@ public class Interactor : MonoBehaviour
         
     }
 
-    
+    void OnDrawGizmos()
+    {   
+        
+            // Draws a blue line from this transform to the target
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(transform.position, transform.position + (transform.forward * detectRange));
+        
+    }
     //public void TextUpdate(bool isDragging) 
     //{
     //    if (isDragging && !pickupText.IsActive() && !rotateText.IsActive())
@@ -53,7 +60,7 @@ public class Interactor : MonoBehaviour
 
     //        }
     //    }
-        
+
     //    if (_numFound != 0 && !isDragging)
     //    {
 
@@ -62,8 +69,8 @@ public class Interactor : MonoBehaviour
 
 
     //        pickupText.text = "PICKUP(F)";
-                
-            
+
+
     //        foreach (TextMeshProUGUI text in UiTexts)
     //        {
     //            text.gameObject.SetActive(true);
@@ -111,12 +118,13 @@ public class Interactor : MonoBehaviour
     //        foreach (TextMeshProUGUI text in UiTexts)
     //        {
     //            text.gameObject.SetActive(false);
-                
+
     //        }
-            
+
 
     //    }
-        
-        
+
+
     //}
+
 }

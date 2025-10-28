@@ -12,7 +12,7 @@ public class TextManager : MonoBehaviour
    
     public List<GameObject> keyboardUIElements, gamepadUIElements;
     // List<TextMeshProUGUI> accordingUIElements;
-
+    Collider lastcol;
 
     
 
